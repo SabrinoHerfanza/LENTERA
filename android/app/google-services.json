@@ -1,0 +1,68 @@
+{
+  "project_info": {
+    "project_number": "400168708988",
+    "firebase_url": "https://lentera-21607-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "lentera-21607",
+    "storage_bucket": "lentera-21607.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:400168708988:android:a04b66d39052a001fd12f9",
+        "android_client_info": {
+          "package_name": "com.example.lentera_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCdpWGYrgFz3gHclU8c26_BBcWs_sCF0rc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:400168708988:android:640e6686fcebd254fd12f9",
+        "android_client_info": {
+          "package_name": "com.example.lentera_smaga"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCdpWGYrgFz3gHclU8c26_BBcWs_sCF0rc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:400168708988:android:3975b87e5af71ef9fd12f9",
+        "android_client_info": {
+          "package_name": "com.lentera.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCdpWGYrgFz3gHclU8c26_BBcWs_sCF0rc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
