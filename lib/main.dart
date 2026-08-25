@@ -180,17 +180,10 @@ class LenteraLogo extends StatelessWidget {
           width: 2,
         ),
       ),
-      child: Padding(
-        padding: EdgeInsets.all(size * .08),
-        child: Image.asset(
-          'assets/lentera_logo.png',
-          fit: BoxFit.contain,
-          errorBuilder: (_, __, ___) => Icon(
-            Icons.menu_book_rounded,
-            size: size * .48,
-            color: primaryColor,
-          ),
-        ),
+      child: Icon(
+        Icons.menu_book_rounded,
+        size: size * .48,
+        color: primaryColor,
       ),
     );
   }
@@ -765,8 +758,8 @@ class LenteraDatabase {
     required String nama,
     required String kelas,
     required int durationSeconds,
-    String surat = 'Tidak diketahui',
     required int lastAyat,
+    required String surah,
   }) async {
     final now = DateTime.now();
 
@@ -785,38 +778,34 @@ class LenteraDatabase {
       'kelas': kelas,
       'tanggal': date,
       'durasiDetik': durationSeconds,
-      'surat': surat,
+      'surah': surah,
       'ayatTerakhir': lastAyat,
       'timestamp': ServerValue.timestamp,
     });
   }
 
   // ----------------------------------------------------------
-  // LIVE TRACKING SESI MENGAJI
+  // LIVE TRACKING MEMBACA
   // ----------------------------------------------------------
 
   static Future<void> startLiveSession({
     required String nis,
     required String nama,
     required String kelas,
-    required String surat,
+    required String surah,
     required int ayat,
     required int durationSeconds,
   }) async {
     if (nis.trim().isEmpty) return;
 
-    await root
-        .child('sesi_mengaji')
-        .child(nis)
-        .set({
+    await root.child('live_sessions').child(nis).set({
       'nis': nis,
       'nama': nama,
       'kelas': kelas,
-      'surat': surat,
+      'surah': surah,
       'ayat': ayat,
-      'durasiDetik': durationSeconds,
-      'active': true,
-      'status': 'Sedang membaca',
+      'durationSeconds': durationSeconds,
+      'status': 'active',
       'startedAt': ServerValue.timestamp,
       'updatedAt': ServerValue.timestamp,
     });
@@ -826,48 +815,84 @@ class LenteraDatabase {
     required String nis,
     required String nama,
     required String kelas,
-    required String surat,
+    required String surah,
     required int ayat,
     required int durationSeconds,
-    bool active = true,
-    String? status,
+    String status = 'active',
   }) async {
     if (nis.trim().isEmpty) return;
 
-    await root
-        .child('sesi_mengaji')
-        .child(nis)
-        .update({
+    await root.child('live_sessions').child(nis).update({
       'nis': nis,
       'nama': nama,
       'kelas': kelas,
-      'surat': surat,
+      'surah': surah,
       'ayat': ayat,
-      'durasiDetik': durationSeconds,
-      'active': active,
-      'status': status ??
-          (active ? 'Sedang membaca' : 'Terputus'),
+      'durationSeconds': durationSeconds,
+      'status': status,
       'updatedAt': ServerValue.timestamp,
     });
   }
 
-  static Future<void> endLiveSession(String nis) async {
+  static Future<void> endLiveSession({
+    required String nis,
+    required String nama,
+    required String kelas,
+    required String surah,
+    required int ayat,
+    required int durationSeconds,
+  }) async {
     if (nis.trim().isEmpty) return;
 
-    await root
-        .child('sesi_mengaji')
-        .child(nis)
-        .update({
-      'active': false,
-      'status': 'Selesai',
+    await root.child('live_sessions').child(nis).update({
+      'nis': nis,
+      'nama': nama,
+      'kelas': kelas,
+      'surah': surah,
+      'ayat': ayat,
+      'durationSeconds': durationSeconds,
+      'status': 'completed',
       'endedAt': ServerValue.timestamp,
       'updatedAt': ServerValue.timestamp,
     });
   }
 
+  static Future<List<Map<String, dynamic>>> getLiveSessions() async {
+    final snapshot = await root.child('live_sessions').get();
+    if (!snapshot.exists || snapshot.value is! Map) return [];
+
+    final value = Map<String, dynamic>.from(snapshot.value as Map);
+    final result = <Map<String, dynamic>>[];
+
+    for (final entry in value.entries) {
+      if (entry.value is! Map) continue;
+      final item = Map<String, dynamic>.from(entry.value as Map);
+      item['nis'] ??= entry.key.toString();
+      result.add(item);
+    }
+
+    result.sort((a, b) =>
+        (b['updatedAt'] ?? 0).toString().compareTo((a['updatedAt'] ?? 0).toString()));
+    return result;
+  }
+
   // ----------------------------------------------------------
   // CATAT INTERUPSI
   // ----------------------------------------------------------
+
+  static Future<void> recordInterruption({
+    required String nis,
+    required String nama,
+    required String kelas,
+    required String message,
+  }) async {
+    await logInterruption(
+      nis: nis,
+      nama: nama,
+      kelas: kelas,
+      message: message,
+    );
+  }
 
   static Future<void> logInterruption({
     required String nis,
@@ -919,9 +944,9 @@ class _AdminDashboardState
       case 4:
         return const AdminInterruptionsPage();
       case 5:
-        return const QuranReaderPage();
-      case 6:
         return const AdminLiveTrackingPage();
+      case 6:
+        return const QuranReaderPage();
       default:
         return const AdminOverviewPage();
     }
@@ -933,8 +958,8 @@ class _AdminDashboardState
     'Absensi',
     'Progres Al-Qur\'an',
     'Interupsi Membaca',
-    'Baca Al-Qur\'an',
     'Live Tracking',
+    'Baca Al-Qur\'an',
   ];
 
   Future<void> _logout() async {
@@ -1048,14 +1073,14 @@ class _AdminDashboardState
 
             _drawerItem(
               5,
-              Icons.menu_book_rounded,
-              'Baca Al-Qur\'an',
+              Icons.radar_rounded,
+              'Live Tracking',
             ),
 
             _drawerItem(
               6,
-              Icons.radar_rounded,
-              'Live Tracking',
+              Icons.menu_book_rounded,
+              'Baca Al-Qur\'an',
             ),
 
             const Spacer(),
@@ -1119,6 +1144,224 @@ class _AdminDashboardState
 
         Navigator.pop(context);
       },
+    );
+  }
+}
+
+// ============================================================
+// ADMIN LIVE TRACKING
+// ============================================================
+
+class AdminLiveTrackingPage extends StatefulWidget {
+  const AdminLiveTrackingPage({super.key});
+
+  @override
+  State<AdminLiveTrackingPage> createState() => _AdminLiveTrackingPageState();
+}
+
+class _AdminLiveTrackingPageState extends State<AdminLiveTrackingPage> {
+  StreamSubscription<DatabaseEvent>? _subscription;
+  List<Map<String, dynamic>> _sessions = [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _listen();
+  }
+
+  void _listen() {
+    _subscription = LenteraDatabase.root.child('live_sessions').onValue.listen((event) {
+      final value = event.snapshot.value;
+      final sessions = <Map<String, dynamic>>[];
+
+      if (value is Map) {
+        for (final entry in value.entries) {
+          if (entry.value is! Map) continue;
+          final item = Map<String, dynamic>.from(entry.value as Map);
+          item['nis'] ??= entry.key.toString();
+          sessions.add(item);
+        }
+      }
+
+      sessions.sort((a, b) {
+        final aActive = a['status'] == 'active';
+        final bActive = b['status'] == 'active';
+        if (aActive != bActive) return aActive ? -1 : 1;
+        return (b['updatedAt'] ?? 0).toString().compareTo((a['updatedAt'] ?? 0).toString());
+      });
+
+      if (!mounted) return;
+      setState(() {
+        _sessions = sessions;
+        _loading = false;
+      });
+    }, onError: (error) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+    });
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
+  String _statusText(String? status) {
+    switch (status) {
+      case 'active':
+        return 'SEDANG MEMBACA';
+      case 'paused':
+        return 'TERJEDA';
+      case 'completed':
+        return 'SELESAI';
+      default:
+        return (status ?? 'UNKNOWN').toUpperCase();
+    }
+  }
+
+  Color _statusColor(String? status) {
+    switch (status) {
+      case 'active':
+        return Colors.green;
+      case 'paused':
+        return Colors.orange;
+      case 'completed':
+        return Colors.blueGrey;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _duration(dynamic value) {
+    final seconds = int.tryParse(value?.toString() ?? '') ?? 0;
+    final m = seconds ~/ 60;
+    final s = seconds % 60;
+    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final activeCount = _sessions.where((e) => e['status'] == 'active').length;
+
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator(color: primaryColor));
+    }
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        final sessions = await LenteraDatabase.getLiveSessions();
+        if (mounted) setState(() => _sessions = sessions);
+      },
+      child: ListView(
+        padding: const EdgeInsets.all(18),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: darkGreen,
+              borderRadius: BorderRadius.circular(22),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.radar_rounded, color: Colors.white, size: 42),
+                const SizedBox(width: 15),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Live Tracking Membaca',
+                        style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        '$activeCount siswa sedang membaca sekarang',
+                        style: const TextStyle(color: Colors.white70),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          if (_sessions.isEmpty)
+            const EmptyCard(
+              icon: Icons.menu_book_outlined,
+              text: 'Belum ada sesi membaca yang tercatat.',
+            )
+          else
+            ..._sessions.map((session) {
+              final status = session['status']?.toString();
+              final statusColor = _statusColor(status);
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: statusColor.withOpacity(.25)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: statusColor.withOpacity(.12),
+                          child: Icon(Icons.person, color: statusColor),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                session['nama']?.toString() ?? '-',
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                              ),
+                              Text('NIS ${session['nis'] ?? '-'} • Kelas ${session['kelas'] ?? '-'}'),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: statusColor.withOpacity(.10),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            _statusText(status),
+                            style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 11),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 24),
+                    Row(
+                      children: [
+                        const Icon(Icons.menu_book_outlined, size: 20, color: primaryColor),
+                        const SizedBox(width: 8),
+                        Expanded(child: Text('Surah: ${session['surah'] ?? '-'}')),
+                        Text('Ayat ${session['ayat'] ?? 1}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        const Icon(Icons.timer_outlined, size: 20, color: primaryColor),
+                        const SizedBox(width: 8),
+                        Text('Durasi ${_duration(session['durationSeconds'])}'),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            }),
+        ],
+      ),
     );
   }
 }
@@ -2143,8 +2386,12 @@ class ProgressCard
             ?.toString() ??
         '-';
 
-    final surat =
-        data['surat']?.toString() ?? 'Surat belum tercatat';
+    final surah =
+        data['surah']
+            ?.toString() ??
+        data['namaSurah']
+            ?.toString() ??
+        '-';
 
     final ayat =
         data['ayatTerakhir']
@@ -2224,32 +2471,24 @@ class ProgressCard
               height: 24,
             ),
 
-            Text(
-              'Surat: $surat',
-              style: const TextStyle(
-                fontWeight: FontWeight.w700,
-                color: primaryColor,
-              ),
-            ),
-            const SizedBox(height: 12),
-
             Row(
               children: [
                 Expanded(
                   child: _ProgressInfo(
-                    title:
-                        'Ayat terakhir',
+                    title: 'Surah',
+                    value: surah,
+                  ),
+                ),
+                Expanded(
+                  child: _ProgressInfo(
+                    title: 'Ayat terakhir',
                     value: ayat,
                   ),
                 ),
                 Expanded(
                   child: _ProgressInfo(
-                    title:
-                        'Durasi',
-                    value:
-                        _formatDuration(
-                      durasi,
-                    ),
+                    title: 'Durasi',
+                    value: _formatDuration(durasi),
                   ),
                 ),
               ],
@@ -2553,128 +2792,6 @@ class InterruptionCard
 }
 
 // ============================================================
-// ADMIN LIVE TRACKING
-// ============================================================
-
-class AdminLiveTrackingPage extends StatefulWidget {
-  const AdminLiveTrackingPage({super.key});
-
-  @override
-  State<AdminLiveTrackingPage> createState() => _AdminLiveTrackingPageState();
-}
-
-class _AdminLiveTrackingPageState extends State<AdminLiveTrackingPage> {
-  StreamSubscription<DatabaseEvent>? _subscription;
-  Map<String, dynamic> _sessions = {};
-
-  @override
-  void initState() {
-    super.initState();
-    _subscription = FirebaseDatabase.instance.ref('sesi_mengaji').onValue.listen((event) {
-      final value = event.snapshot.value;
-      if (!mounted) return;
-      setState(() {
-        _sessions = value is Map ? Map<String, dynamic>.from(value) : {};
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    _subscription?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final entries = _sessions.entries.toList();
-    entries.sort((a, b) => a.key.compareTo(b.key));
-
-    return RefreshIndicator(
-      onRefresh: () async {
-        final snap = await FirebaseDatabase.instance.ref('sesi_mengaji').get();
-        final value = snap.value;
-        if (mounted) {
-          setState(() {
-            _sessions = value is Map ? Map<String, dynamic>.from(value) : {};
-          });
-        }
-      },
-      child: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: lightGreen,
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.radar_rounded, color: primaryColor, size: 32),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    '${entries.length} siswa sedang/baru melakukan sesi membaca.',
-                    style: const TextStyle(fontWeight: FontWeight.w700, color: darkGreen),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 18),
-          if (entries.isEmpty)
-            const EmptyCard(
-              icon: Icons.hourglass_empty_rounded,
-              text: 'Belum ada sesi mengaji aktif.',
-            )
-          else
-            ...entries.map((entry) {
-              final raw = entry.value;
-              final data = raw is Map ? Map<String, dynamic>.from(raw) : <String, dynamic>{};
-              final active = data['active'] == true;
-              final nama = data['nama']?.toString() ?? '-';
-              final nis = data['nis']?.toString() ?? entry.key;
-              final kelas = data['kelas']?.toString() ?? '-';
-              final surat = data['surat']?.toString() ?? '-';
-              final ayat = data['ayat']?.toString() ?? '-';
-              final status = data['status']?.toString() ?? (active ? 'Sedang membaca' : 'Terputus');
-              final duration = int.tryParse(data['durasiDetik']?.toString() ?? '') ?? 0;
-              final minutes = duration ~/ 60;
-              final seconds = duration % 60;
-
-              return Card(
-                elevation: 0,
-                margin: const EdgeInsets.only(bottom: 12),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(14),
-                  leading: CircleAvatar(
-                    backgroundColor: active ? lightGreen : const Color(0xFFFFF4E5),
-                    child: Icon(active ? Icons.menu_book : Icons.warning_amber_rounded,
-                        color: active ? primaryColor : Colors.orange),
-                  ),
-                  title: Text(nama, style: const TextStyle(fontWeight: FontWeight.bold, color: darkGreen)),
-                  subtitle: Text('NIS: $nis • Kelas: $kelas\n$surat • Ayat $ayat • ${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}'),
-                  isThreeLine: true,
-                  trailing: Text(
-                    status,
-                    textAlign: TextAlign.right,
-                    style: TextStyle(
-                      color: active ? primaryColor : Colors.orange.shade800,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              );
-            }),
-        ],
-      ),
-    );
-  }
-}
-
-// ============================================================
 // STUDENT DASHBOARD
 // ============================================================
 
@@ -2823,12 +2940,16 @@ class _StudentDashboardState
     final pages = [
       StudentHomePage(
         student: _student!,
-        onOpenReading: () => setState(() => _index = 1),
+        onOpenReading: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => QuranReaderPage(student: _student!),
+          ),
+        ),
         onOpenProgress: () => setState(() => _index = 2),
       ),
-      ReadingPage(
+      QuranReaderPage(
         student: _student!,
-        onFinished: () => setState(() => _index = 0),
       ),
       StudentProgressPage(
         student: _student!,
@@ -3153,9 +3274,6 @@ class _ReadingPageState
         .addObserver(this);
 
     _startReading();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _startLiveTracking();
-    });
   }
 
   @override
@@ -3178,42 +3296,9 @@ class _ReadingPageState
           setState(() {
             _seconds++;
           });
-          if (_seconds % 5 == 0) {
-            _updateLiveTracking();
-          }
         }
       },
     );
-  }
-
-  Future<void> _startLiveTracking() async {
-    final student = widget.student;
-    try {
-      await LenteraDatabase.startLiveSession(
-        nis: student['nis']?.toString() ?? '',
-        nama: student['nama']?.toString() ?? '',
-        kelas: student['kelas']?.toString() ?? '',
-        surat: 'Belum memilih surat',
-        ayat: _lastAyat,
-        durationSeconds: _seconds,
-      );
-    } catch (e) {
-      debugPrint('Gagal memulai live tracking: $e');
-    }
-  }
-
-  Future<void> _updateLiveTracking() async {
-    final student = widget.student;
-    try {
-      await LenteraDatabase.updateLiveSession(
-        nis: student['nis']?.toString() ?? '',
-        nama: student['nama']?.toString() ?? '',
-        kelas: student['kelas']?.toString() ?? '',
-        surat: 'Belum memilih surat',
-        ayat: _lastAyat,
-        durationSeconds: _seconds,
-      );
-    } catch (_) {}
   }
 
   Future<void> _saveAndExit() async {
@@ -3234,15 +3319,13 @@ class _ReadingPageState
         kelas: kelas,
         durationSeconds: _seconds,
         lastAyat: _lastAyat,
+        surah: 'Belum memilih surah',
       );
     } catch (e) {
       debugPrint('Gagal menyimpan progres: $e');
     }
 
     _timer?.cancel();
-    try {
-      await LenteraDatabase.endLiveSession(widget.student['nis']?.toString() ?? '');
-    } catch (_) {}
 
     if (!mounted) return;
 
@@ -3257,28 +3340,12 @@ class _ReadingPageState
   void didChangeAppLifecycleState(
     AppLifecycleState state,
   ) {
-    if (state == AppLifecycleState.paused) {
+    if (state ==
+        AppLifecycleState.paused) {
+      // Dicatat sebagai interupsi ketika
+      // siswa meninggalkan aplikasi.
       _logBackgroundInterruption();
-      _markLiveInterrupted();
-    } else if (state == AppLifecycleState.resumed) {
-      _startLiveTracking();
     }
-  }
-
-  Future<void> _markLiveInterrupted() async {
-    final student = widget.student;
-    try {
-      await LenteraDatabase.updateLiveSession(
-        nis: student['nis']?.toString() ?? '',
-        nama: student['nama']?.toString() ?? '',
-        kelas: student['kelas']?.toString() ?? '',
-        surat: 'Belum memilih surat',
-        ayat: _lastAyat,
-        durationSeconds: _seconds,
-        active: false,
-        status: 'Terputus / meninggalkan aplikasi',
-      );
-    } catch (_) {}
   }
 
   Future<void>
@@ -4012,8 +4079,10 @@ class _QuranReaderPageState extends State<QuranReaderPage>
   int _lastAyah = 1;
   int _seconds = 0;
   Timer? _timer;
+  Timer? _liveUpdateTimer;
   DateTime? _startedAt;
   bool _saving = false;
+  bool _liveStarted = false;
 
   @override
   void initState() {
@@ -4022,16 +4091,23 @@ class _QuranReaderPageState extends State<QuranReaderPage>
     _startedAt = DateTime.now();
     _startTimer();
     _loadSurahs();
-    if (widget.student != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _startLiveTracking();
-      });
-    }
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _liveUpdateTimer?.cancel();
+    if (widget.student != null && _liveStarted && _selectedSurah != null) {
+      final student = widget.student!;
+      LenteraDatabase.endLiveSession(
+        nis: student['nis']?.toString() ?? '',
+        nama: student['nama']?.toString() ?? '',
+        kelas: student['kelas']?.toString() ?? '',
+        surah: _selectedSurah!.name,
+        ayat: _lastAyah,
+        durationSeconds: _seconds,
+      ).catchError((_) {});
+    }
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -4040,85 +4116,99 @@ class _QuranReaderPageState extends State<QuranReaderPage>
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) {
         setState(() => _seconds++);
-        if (_seconds % 5 == 0) {
-          _updateLiveTracking();
-        }
       }
     });
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused && widget.student != null) {
-      _recordInterruption();
-      _markLiveInterrupted();
-    } else if (state == AppLifecycleState.resumed && widget.student != null) {
-      _startLiveTracking();
-    }
-  }
-
-  Future<void> _markLiveInterrupted() async {
-    final student = widget.student;
-    if (student == null) return;
-    try {
-      await LenteraDatabase.updateLiveSession(
-        nis: student['nis']?.toString() ?? '',
-        nama: student['nama']?.toString() ?? '',
-        kelas: student['kelas']?.toString() ?? '',
-        surat: _selectedSurah?.name ?? 'Belum memilih surah',
-        ayat: _lastAyah,
-        durationSeconds: _seconds,
-        active: false,
-        status: 'Terputus / meninggalkan aplikasi',
-      );
-    } catch (_) {}
-  }
-
-  Future<void> _recordInterruption() async {
-    final student = widget.student!;
-    try {
-      await LenteraDatabase.logInterruption(
-        nis: student['nis']?.toString() ?? '',
-        nama: student['nama']?.toString() ?? '',
-        kelas: student['kelas']?.toString() ?? '',
-        message: 'Siswa meninggalkan halaman baca Al-Qur\'an lengkap',
-      );
-    } catch (_) {}
-  }
-
   Future<void> _startLiveTracking() async {
     final student = widget.student;
-    if (student == null) return;
+    final surah = _selectedSurah;
+    if (student == null || surah == null || _liveStarted) return;
+
     try {
       await LenteraDatabase.startLiveSession(
         nis: student['nis']?.toString() ?? '',
         nama: student['nama']?.toString() ?? '',
         kelas: student['kelas']?.toString() ?? '',
-        surat: _selectedSurah?.name ?? 'Memilih surah',
+        surah: surah.name,
         ayat: _lastAyah,
         durationSeconds: _seconds,
+      );
+      _liveStarted = true;
+      _liveUpdateTimer?.cancel();
+      _liveUpdateTimer = Timer.periodic(
+        const Duration(seconds: 5),
+        (_) => _updateLiveTracking(),
       );
     } catch (e) {
       debugPrint('Gagal memulai live tracking: $e');
     }
   }
 
-  Future<void> _updateLiveTracking() async {
+  Future<void> _updateLiveTracking({String status = 'active'}) async {
     final student = widget.student;
     final surah = _selectedSurah;
-    if (student == null || surah == null) return;
+    if (student == null || surah == null || !_liveStarted) return;
+
     try {
       await LenteraDatabase.updateLiveSession(
         nis: student['nis']?.toString() ?? '',
         nama: student['nama']?.toString() ?? '',
         kelas: student['kelas']?.toString() ?? '',
-        surat: surah.name,
+        surah: surah.name,
         ayat: _lastAyah,
         durationSeconds: _seconds,
+        status: status,
       );
     } catch (e) {
       debugPrint('Gagal memperbarui live tracking: $e');
     }
+  }
+
+  Future<void> _endLiveTracking() async {
+    final student = widget.student;
+    final surah = _selectedSurah;
+    if (student == null || surah == null || !_liveStarted) return;
+
+    _liveUpdateTimer?.cancel();
+    try {
+      await LenteraDatabase.endLiveSession(
+        nis: student['nis']?.toString() ?? '',
+        nama: student['nama']?.toString() ?? '',
+        kelas: student['kelas']?.toString() ?? '',
+        surah: surah.name,
+        ayat: _lastAyah,
+        durationSeconds: _seconds,
+      );
+    } catch (e) {
+      debugPrint('Gagal mengakhiri live tracking: $e');
+    } finally {
+      _liveStarted = false;
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (widget.student == null) return;
+
+    if (state == AppLifecycleState.paused) {
+      _recordInterruption();
+      _updateLiveTracking(status: 'paused');
+    } else if (state == AppLifecycleState.resumed) {
+      _updateLiveTracking(status: 'active');
+    }
+  }
+
+  Future<void> _recordInterruption() async {
+    final student = widget.student!;
+    try {
+      await LenteraDatabase.recordInterruption(
+        nis: student['nis']?.toString() ?? '',
+        nama: student['nama']?.toString() ?? '',
+        kelas: student['kelas']?.toString() ?? '',
+        message: 'Siswa meninggalkan halaman baca Al-Qur\'an lengkap',
+      );
+    } catch (_) {}
   }
 
   Future<void> _loadSurahs() async {
@@ -4156,6 +4246,7 @@ class _QuranReaderPageState extends State<QuranReaderPage>
       });
 
       await _loadAyahs(_selectedSurah!);
+      await _startLiveTracking();
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -4241,9 +4332,14 @@ class _QuranReaderPageState extends State<QuranReaderPage>
 
   Future<void> _selectSurah(QuranSurahInfo? surah) async {
     if (surah == null) return;
-    setState(() => _selectedSurah = surah);
+    setState(() {
+      _selectedSurah = surah;
+      _lastAyah = 1;
+    });
     await _loadAyahs(surah);
-    await _updateLiveTracking();
+    if (_liveStarted) {
+      await _updateLiveTracking();
+    }
   }
 
   Future<void> _saveProgressAndExit() async {
@@ -4260,19 +4356,15 @@ class _QuranReaderPageState extends State<QuranReaderPage>
           nama: student['nama']?.toString() ?? '',
           kelas: student['kelas']?.toString() ?? '',
           durationSeconds: _seconds,
-          surat: _selectedSurah?.name ?? 'Tidak diketahui',
           lastAyat: _lastAyah,
+          surah: _selectedSurah?.name ?? 'Belum memilih surah',
         );
       } catch (e) {
         debugPrint('Gagal menyimpan progres Quran: $e');
       }
     }
 
-    if (widget.student != null) {
-      try {
-        await LenteraDatabase.endLiveSession(widget.student!['nis']?.toString() ?? '');
-      } catch (_) {}
-    }
+    await _endLiveTracking();
 
     if (!mounted) return;
     Navigator.of(context).pop();
@@ -4457,6 +4549,7 @@ class _QuranReaderPageState extends State<QuranReaderPage>
         return GestureDetector(
           onTap: () {
             setState(() => _lastAyah = ayah.numberInSurah);
+            _updateLiveTracking();
           },
           child: Container(
             margin: const EdgeInsets.only(bottom: 14),
