@@ -1,6 +1,8 @@
-name: LENTERA
+name: lentera
+
 description: LENTERA - Monitoring kegiatan mengaji siswa secara real-time.
 publish_to: "none"
+
 version: 1.0.0+1
 
 environment:
@@ -9,13 +11,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+
   cupertino_icons: ^1.0.8
   firebase_core: ^4.0.0
   firebase_auth: ^6.0.0
   firebase_database: ^12.0.0
   provider: ^6.1.5+1
   intl: ^0.20.2
-  alfurqan: ^0.0.4
+  http: ^1.5.0
 
 dev_dependencies:
   flutter_test:
