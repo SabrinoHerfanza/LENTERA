@@ -3010,12 +3010,6 @@ class _StudentDashboardState
             fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
           );
         }),
-        iconTheme: WidgetStateProperty.resolveWith((states) {
-          final selected = states.contains(WidgetState.selected);
-          return IconThemeData(
-            color: selected ? primaryColor : const Color(0xFF46524F),
-          );
-        }),
         selectedIndex: _index,
         onDestinationSelected:
             (index) {
