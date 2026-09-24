@@ -3127,23 +3127,6 @@ class StudentHomePage
         ),
 
         _StudentMenuCard(
-          icon: Icons.auto_stories_rounded,
-          title: 'Baca Al-Qur\'an Lengkap',
-          subtitle:
-              'Baca seluruh surah dengan terjemahan dan warna tajwid.',
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => QuranReaderPage(
-                  student: student,
-                ),
-              ),
-            );
-          },
-        ),
-
-        _StudentMenuCard(
           icon: Icons.bar_chart,
           title: 'Lihat Progres',
           subtitle:
