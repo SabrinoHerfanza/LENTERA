@@ -180,10 +180,23 @@ class LenteraLogo extends StatelessWidget {
           width: 2,
         ),
       ),
-      child: Icon(
-        Icons.menu_book_rounded,
-        size: size * .48,
-        color: primaryColor,
+      child: ClipOval(
+        child: Padding(
+          padding: EdgeInsets.all(size * .10),
+          child: Image.asset(
+            'assets/lentera_logo.png',
+            width: size * .80,
+            height: size * .80,
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) {
+              return Icon(
+                Icons.menu_book_rounded,
+                size: size * .48,
+                color: primaryColor,
+              );
+            },
+          ),
+        ),
       ),
     );
   }
@@ -3127,6 +3140,23 @@ class StudentHomePage
         ),
 
         _StudentMenuCard(
+          icon: Icons.auto_stories_rounded,
+          title: 'Baca Al-Qur\'an Lengkap',
+          subtitle:
+              'Baca seluruh surah dengan terjemahan dan warna tajwid.',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => QuranReaderPage(
+                  student: student,
+                ),
+              ),
+            );
+          },
+        ),
+
+        _StudentMenuCard(
           icon: Icons.bar_chart,
           title: 'Lihat Progres',
           subtitle:
@@ -4025,11 +4055,13 @@ class QuranSurahInfo {
 class QuranAyahData {
   final int numberInSurah;
   final String tajweedText;
+  final String latinText;
   final String translation;
 
   const QuranAyahData({
     required this.numberInSurah,
     required this.tajweedText,
+    required this.latinText,
     required this.translation,
   });
 }
@@ -4247,20 +4279,29 @@ class _QuranReaderPageState extends State<QuranReaderPage>
 
     try {
       final responses = await Future.wait([
+        // Arabic + warna tajwid
         http.get(
           Uri.parse(
             'https://api.alquran.cloud/v1/surah/${surah.number}/quran-tajweed',
           ),
         ),
+        // Terjemahan Indonesia
         http.get(
           Uri.parse(
             'https://api.alquran.cloud/v1/surah/${surah.number}/id.indonesian',
           ),
         ),
+        // Latin/transliterasi dari EQuran.id API v2
+        http.get(
+          Uri.parse(
+            'https://equran.id/api/v2/surat/${surah.number}',
+          ),
+        ),
       ]);
 
       if (responses[0].statusCode != 200 ||
-          responses[1].statusCode != 200) {
+          responses[1].statusCode != 200 ||
+          responses[2].statusCode != 200) {
         throw Exception('Gagal mengambil ayat.');
       }
 
@@ -4268,20 +4309,32 @@ class _QuranReaderPageState extends State<QuranReaderPage>
           jsonDecode(responses[0].body) as Map<String, dynamic>;
       final translationBody =
           jsonDecode(responses[1].body) as Map<String, dynamic>;
+      final equranBody =
+          jsonDecode(responses[2].body) as Map<String, dynamic>;
 
       final tajweedData =
           Map<String, dynamic>.from(tajweedBody['data'] as Map);
       final translationData =
           Map<String, dynamic>.from(translationBody['data'] as Map);
+      final equranData =
+          Map<String, dynamic>.from(equranBody['data'] as Map);
 
       final tajweedAyahs = tajweedData['ayahs'] as List<dynamic>;
       final translationAyahs = translationData['ayahs'] as List<dynamic>;
+      final equranAyahs = equranData['ayat'] as List<dynamic>;
 
       final translations = <int, String>{};
       for (final item in translationAyahs) {
         final map = Map<String, dynamic>.from(item as Map);
         final number = (map['numberInSurah'] as num?)?.toInt() ?? 0;
         translations[number] = map['text']?.toString() ?? '';
+      }
+
+      final latinTexts = <int, String>{};
+      for (final item in equranAyahs) {
+        final map = Map<String, dynamic>.from(item as Map);
+        final number = (map['nomorAyat'] as num?)?.toInt() ?? 0;
+        latinTexts[number] = map['teksLatin']?.toString() ?? '';
       }
 
       final result = <QuranAyahData>[];
@@ -4292,6 +4345,7 @@ class _QuranReaderPageState extends State<QuranReaderPage>
           QuranAyahData(
             numberInSurah: number,
             tajweedText: map['text']?.toString() ?? '',
+            latinText: latinTexts[number] ?? '',
             translation: translations[number] ?? '',
           ),
         );
@@ -4595,6 +4649,40 @@ class _QuranReaderPageState extends State<QuranReaderPage>
                   ),
                 ),
                 const SizedBox(height: 16),
+                if (ayah.latinText.isNotEmpty) ...[
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEEF7F4),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Latin',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: primaryColor,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          ayah.latinText,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            height: 1.65,
+                            color: Color(0xFF334A46),
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
