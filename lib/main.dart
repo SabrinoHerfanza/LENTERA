@@ -781,10 +781,13 @@ class LenteraDatabase {
         '${now.month.toString().padLeft(2, '0')}-'
         '${now.day.toString().padLeft(2, '0')}';
 
+    // Gunakan push() agar setiap sesi membaca tersimpan sebagai aktivitas baru.
+    // Jika memakai tanggal sebagai key, membaca beberapa kali dalam sehari
+    // akan menimpa data sebelumnya.
     await root
         .child('progres')
         .child(nis)
-        .child(date)
+        .push()
         .set({
       'nis': nis,
       'nama': nama,
@@ -2953,16 +2956,18 @@ class _StudentDashboardState
     final pages = [
       StudentHomePage(
         student: _student!,
-        onOpenReading: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => QuranReaderPage(student: _student!),
-          ),
-        ),
+        onOpenReading: () => setState(() {
+          _index = 1;
+        }),
         onOpenProgress: () => setState(() => _index = 2),
       ),
       QuranReaderPage(
         student: _student!,
+        onFinished: () {
+          if (mounted) {
+            setState(() => _index = 0);
+          }
+        },
       ),
       StudentProgressPage(
         student: _student!,
@@ -2996,6 +3001,21 @@ class _StudentDashboardState
       body: pages[_index],
       bottomNavigationBar:
           NavigationBar(
+        backgroundColor: const Color(0xFFEAF2EF),
+        indicatorColor: const Color(0xFFCBEDE5),
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          final selected = states.contains(WidgetState.selected);
+          return TextStyle(
+            color: selected ? primaryColor : const Color(0xFF46524F),
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+          );
+        }),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          final selected = states.contains(WidgetState.selected);
+          return IconThemeData(
+            color: selected ? primaryColor : const Color(0xFF46524F),
+          );
+        }),
         selectedIndex: _index,
         onDestinationSelected:
             (index) {
@@ -3137,23 +3157,6 @@ class StudentHomePage
           subtitle:
               'Lanjutkan aktivitas mengaji hari ini.',
           onTap: onOpenReading,
-        ),
-
-        _StudentMenuCard(
-          icon: Icons.auto_stories_rounded,
-          title: 'Baca Al-Qur\'an Lengkap',
-          subtitle:
-              'Baca seluruh surah dengan terjemahan dan warna tajwid.',
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => QuranReaderPage(
-                  student: student,
-                ),
-              ),
-            );
-          },
         ),
 
         _StudentMenuCard(
@@ -3662,6 +3665,16 @@ class _StudentProgressPageState
 
       if (!mounted) return;
 
+     result.sort((a, b) {
+  final aTime = a['timestamp'];
+  final bTime = b['timestamp'];
+
+  final an = aTime is num ? aTime.toInt() : 0;
+  final bn = bTime is num ? bTime.toInt() : 0;
+
+  return bn.compareTo(an);
+});
+
       setState(() {
         _data = result;
         _loading = false;
@@ -4068,10 +4081,12 @@ class QuranAyahData {
 
 class QuranReaderPage extends StatefulWidget {
   final Map<String, dynamic>? student;
+  final VoidCallback? onFinished;
 
   const QuranReaderPage({
     super.key,
     this.student,
+    this.onFinished,
   });
 
   @override
@@ -4385,9 +4400,9 @@ class _QuranReaderPageState extends State<QuranReaderPage>
 
     _timer?.cancel();
 
-    if (widget.student != null) {
-      final student = widget.student!;
-      try {
+    try {
+      if (widget.student != null) {
+        final student = widget.student!;
         await LenteraDatabase.saveProgress(
           nis: student['nis']?.toString() ?? '',
           nama: student['nama']?.toString() ?? '',
@@ -4396,15 +4411,34 @@ class _QuranReaderPageState extends State<QuranReaderPage>
           lastAyat: _lastAyah,
           surah: _selectedSurah?.name ?? 'Belum memilih surah',
         );
-      } catch (e) {
-        debugPrint('Gagal menyimpan progres Quran: $e');
       }
+
+      await _endLiveTracking();
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Progres membaca berhasil disimpan.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+
+      if (widget.onFinished != null) {
+        widget.onFinished!();
+      } else {
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (!mounted) return;
+      debugPrint('Gagal menyimpan progres Quran: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Progres gagal disimpan: $e'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      setState(() => _saving = false);
     }
-
-    await _endLiveTracking();
-
-    if (!mounted) return;
-    Navigator.of(context).pop();
   }
 
   String _formatTime(int seconds) {
