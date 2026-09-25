@@ -1239,6 +1239,7 @@ class _AdminLiveTrackingPageState extends State<AdminLiveTrackingPage> {
   StreamSubscription<DatabaseEvent>? _subscription;
   List<Map<String, dynamic>> _sessions = [];
   bool _loading = true;
+  String _selectedKelas = 'Semua Kelas';
 
   @override
   void initState() {
@@ -1284,6 +1285,21 @@ class _AdminLiveTrackingPageState extends State<AdminLiveTrackingPage> {
     super.dispose();
   }
 
+  List<Map<String, dynamic>> get _filteredSessions {
+    if (_selectedKelas == 'Semua Kelas') return _sessions;
+    return _sessions.where((s) => s['kelas']?.toString() == _selectedKelas).toList();
+  }
+
+  List<String> get _kelasList {
+    final set = <String>{};
+    for (final s in _sessions) {
+      final k = s['kelas']?.toString() ?? '';
+      if (k.isNotEmpty) set.add(k);
+    }
+    final sorted = set.toList()..sort();
+    return ['Semua Kelas', ...sorted];
+  }
+
   String _statusText(String? status) {
     switch (status) {
       case 'active':
@@ -1319,7 +1335,8 @@ class _AdminLiveTrackingPageState extends State<AdminLiveTrackingPage> {
 
   @override
   Widget build(BuildContext context) {
-    final activeCount = _sessions.where((e) => e['status'] == 'active').length;
+    final filtered = _filteredSessions;
+    final activeCount = filtered.where((e) => e['status'] == 'active').length;
 
     if (_loading) {
       return const Center(child: CircularProgressIndicator(color: primaryColor));
@@ -1362,14 +1379,49 @@ class _AdminLiveTrackingPageState extends State<AdminLiveTrackingPage> {
               ],
             ),
           ),
-          const SizedBox(height: 16),
-          if (_sessions.isEmpty)
+          const SizedBox(height: 14),
+          // ── Filter Kelas ──
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFD8E1DE)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.filter_list_rounded, color: primaryColor, size: 20),
+                const SizedBox(width: 10),
+                const Text('Filter Kelas:', style: TextStyle(fontWeight: FontWeight.w600, color: darkGreen)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _selectedKelas,
+                      isExpanded: true,
+                      isDense: true,
+                      borderRadius: BorderRadius.circular(12),
+                      items: _kelasList.map((k) => DropdownMenuItem(
+                        value: k,
+                        child: Text(k, style: const TextStyle(fontSize: 14)),
+                      )).toList(),
+                      onChanged: (val) {
+                        if (val != null) setState(() => _selectedKelas = val);
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          if (filtered.isEmpty)
             const EmptyCard(
               icon: Icons.menu_book_outlined,
               text: 'Belum ada sesi membaca yang tercatat.',
             )
           else
-            ..._sessions.map((session) {
+            ...filtered.map((session) {
               final status = session['status']?.toString();
               final statusColor = _statusColor(status);
               return Container(
@@ -2644,6 +2696,7 @@ class _AdminInterruptionsPageState
   bool _loading = true;
 
   List<Map<String, dynamic>> _data = [];
+  String _selectedKelas = 'Semua Kelas';
 
   StreamSubscription<DatabaseEvent>?
       _subscription;
@@ -2691,6 +2744,24 @@ class _AdminInterruptionsPageState
     }
   }
 
+  List<Map<String, dynamic>> get _filteredData {
+    if (_selectedKelas == 'Semua Kelas') return _data;
+    return _data.where((item) {
+      final k = item['kelas']?.toString() ?? item['className']?.toString() ?? '';
+      return k == _selectedKelas;
+    }).toList();
+  }
+
+  List<String> get _kelasList {
+    final set = <String>{};
+    for (final item in _data) {
+      final k = item['kelas']?.toString() ?? item['className']?.toString() ?? '';
+      if (k.isNotEmpty) set.add(k);
+    }
+    final sorted = set.toList()..sort();
+    return ['Semua Kelas', ...sorted];
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) {
@@ -2700,6 +2771,8 @@ class _AdminInterruptionsPageState
         ),
       );
     }
+
+    final filtered = _filteredData;
 
     return RefreshIndicator(
       onRefresh: _load,
@@ -2737,10 +2810,47 @@ class _AdminInterruptionsPageState
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
+
+          // ── Filter Kelas ──
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFD8E1DE)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.filter_list_rounded, color: primaryColor, size: 20),
+                const SizedBox(width: 10),
+                const Text('Filter Kelas:', style: TextStyle(fontWeight: FontWeight.w600, color: darkGreen)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _selectedKelas,
+                      isExpanded: true,
+                      isDense: true,
+                      borderRadius: BorderRadius.circular(12),
+                      items: _kelasList.map((k) => DropdownMenuItem(
+                        value: k,
+                        child: Text(k, style: const TextStyle(fontSize: 14)),
+                      )).toList(),
+                      onChanged: (val) {
+                        if (val != null) setState(() => _selectedKelas = val);
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
 
           Text(
-            '${_data.length} interupsi tercatat',
+            '${filtered.length} interupsi tercatat',
             style: const TextStyle(
               fontWeight: FontWeight.bold,
               color: darkGreen,
@@ -2749,7 +2859,7 @@ class _AdminInterruptionsPageState
 
           const SizedBox(height: 12),
 
-          if (_data.isEmpty)
+          if (filtered.isEmpty)
             const EmptyCard(
               icon:
                   Icons.check_circle_outline,
@@ -2757,7 +2867,7 @@ class _AdminInterruptionsPageState
                   'Belum ada interupsi.',
             )
           else
-            ..._data.map(
+            ...filtered.map(
               (item) =>
                   InterruptionCard(
                 data: item,
@@ -4172,6 +4282,9 @@ class _QuranReaderPageState extends State<QuranReaderPage>
     _startTimer();
     _loadSurahs();
     _loadBookmarks();
+    // Langsung mulai Live Tracking saat masuk halaman Mengaji,
+    // tanpa menunggu surah dimuat atau siswa menyentuh ayat.
+    _startLiveTrackingImmediate();
   }
 
   @override
@@ -4201,10 +4314,41 @@ class _QuranReaderPageState extends State<QuranReaderPage>
     });
   }
 
+  /// Langsung aktif saat siswa masuk halaman Mengaji, sebelum surah dimuat.
+  Future<void> _startLiveTrackingImmediate() async {
+    final student = widget.student;
+    if (student == null || _liveStarted) return;
+    try {
+      await LenteraDatabase.startLiveSession(
+        nis: student['nis']?.toString() ?? '',
+        nama: student['nama']?.toString() ?? '',
+        kelas: student['kelas']?.toString() ?? '',
+        surah: 'Memuat...', // akan diperbarui setelah surah terpilih
+        ayat: 1,
+        durationSeconds: 0,
+      );
+      _liveStarted = true;
+      _liveUpdateTimer?.cancel();
+      _liveUpdateTimer = Timer.periodic(
+        const Duration(seconds: 5),
+        (_) => _updateLiveTracking(),
+      );
+    } catch (e) {
+      debugPrint('Gagal memulai live tracking awal: $e');
+    }
+  }
+
+  /// Dipakai saat surah sudah tersedia (update nama surah ke Firebase).
   Future<void> _startLiveTracking() async {
     final student = widget.student;
     final surah = _selectedSurah;
-    if (student == null || surah == null || _liveStarted) return;
+    if (student == null || surah == null) return;
+
+    // Jika sesi sudah berjalan, cukup update nama surahnya.
+    if (_liveStarted) {
+      await _updateLiveTracking();
+      return;
+    }
 
     try {
       await LenteraDatabase.startLiveSession(
