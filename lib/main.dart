@@ -763,6 +763,66 @@ class LenteraDatabase {
   }
 
   // ----------------------------------------------------------
+  // BOOKMARK AYAT
+  // ----------------------------------------------------------
+
+  static Future<List<Map<String, dynamic>>> getBookmarks({
+    required String nis,
+  }) async {
+    if (nis.trim().isEmpty) return [];
+    final snapshot = await root.child('bookmarks').child(nis).get();
+    if (!snapshot.exists || snapshot.value is! Map) return [];
+
+    final value = Map<String, dynamic>.from(snapshot.value as Map);
+    final result = <Map<String, dynamic>>[];
+    for (final entry in value.entries) {
+      if (entry.value is! Map) continue;
+      final item = Map<String, dynamic>.from(entry.value as Map);
+      item['id'] = entry.key.toString();
+      result.add(item);
+    }
+    result.sort((a, b) =>
+        (a['surahNumber'] ?? 0).toString().compareTo((b['surahNumber'] ?? 0).toString()));
+    return result;
+  }
+
+  static Future<void> saveBookmark({
+    required String nis,
+    required String nama,
+    required int surahNumber,
+    required String surahName,
+    required int ayat,
+    required String latin,
+    required String translation,
+  }) async {
+    if (nis.trim().isEmpty) return;
+    final key = '${surahNumber}_$ayat';
+    await root.child('bookmarks').child(nis).child(key).set({
+      'nis': nis,
+      'nama': nama,
+      'surahNumber': surahNumber,
+      'surahName': surahName,
+      'ayat': ayat,
+      'latin': latin,
+      'translation': translation,
+      'timestamp': ServerValue.timestamp,
+    });
+  }
+
+  static Future<void> deleteBookmark({
+    required String nis,
+    required int surahNumber,
+    required int ayat,
+  }) async {
+    if (nis.trim().isEmpty) return;
+    await root
+        .child('bookmarks')
+        .child(nis)
+        .child('${surahNumber}_$ayat')
+        .remove();
+  }
+
+  // ----------------------------------------------------------
   // SIMPAN PROGRES
   // ----------------------------------------------------------
 
@@ -3659,16 +3719,6 @@ class _StudentProgressPageState
 
       if (!mounted) return;
 
-     result.sort((a, b) {
-  final aTime = a['timestamp'];
-  final bTime = b['timestamp'];
-
-  final an = aTime is num ? aTime.toInt() : 0;
-  final bn = bTime is num ? bTime.toInt() : 0;
-
-  return bn.compareTo(an);
-});
-
       setState(() {
         _data = result;
         _loading = false;
@@ -4076,11 +4126,15 @@ class QuranAyahData {
 class QuranReaderPage extends StatefulWidget {
   final Map<String, dynamic>? student;
   final VoidCallback? onFinished;
+  final int? initialSurahNumber;
+  final int? initialAyah;
 
   const QuranReaderPage({
     super.key,
     this.student,
     this.onFinished,
+    this.initialSurahNumber,
+    this.initialAyah,
   });
 
   @override
@@ -4107,6 +4161,8 @@ class _QuranReaderPageState extends State<QuranReaderPage>
   DateTime? _startedAt;
   bool _saving = false;
   bool _liveStarted = false;
+  final Set<String> _bookmarkedKeys = <String>{};
+  bool _loadingBookmarks = false;
 
   @override
   void initState() {
@@ -4115,6 +4171,7 @@ class _QuranReaderPageState extends State<QuranReaderPage>
     _startedAt = DateTime.now();
     _startTimer();
     _loadSurahs();
+    _loadBookmarks();
   }
 
   @override
@@ -4235,6 +4292,108 @@ class _QuranReaderPageState extends State<QuranReaderPage>
     } catch (_) {}
   }
 
+  String _bookmarkKey(int surahNumber, int ayah) => '${surahNumber}_$ayah';
+
+  bool _isBookmarked(int ayah) {
+    final surah = _selectedSurah;
+    if (surah == null) return false;
+    return _bookmarkedKeys.contains(_bookmarkKey(surah.number, ayah));
+  }
+
+  Future<void> _loadBookmarks() async {
+    final student = widget.student;
+    final nis = student?['nis']?.toString() ?? '';
+    if (nis.isEmpty) return;
+    setState(() => _loadingBookmarks = true);
+    try {
+      final items = await LenteraDatabase.getBookmarks(nis: nis);
+      if (!mounted) return;
+      setState(() {
+        _bookmarkedKeys
+          ..clear()
+          ..addAll(items.map((item) =>
+              _bookmarkKey(
+                (item['surahNumber'] as num?)?.toInt() ?? 0,
+                (item['ayat'] as num?)?.toInt() ?? 0,
+              )));
+        _loadingBookmarks = false;
+      });
+    } catch (e) {
+      debugPrint('Gagal memuat bookmark: $e');
+      if (mounted) setState(() => _loadingBookmarks = false);
+    }
+  }
+
+  Future<void> _toggleBookmark(QuranAyahData ayah) async {
+    final student = widget.student;
+    final surah = _selectedSurah;
+    final nis = student?['nis']?.toString() ?? '';
+    if (student == null || surah == null || nis.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Bookmark hanya tersedia setelah login.')),
+      );
+      return;
+    }
+
+    final key = _bookmarkKey(surah.number, ayah.numberInSurah);
+    final wasBookmarked = _bookmarkedKeys.contains(key);
+    setState(() {
+      if (wasBookmarked) {
+        _bookmarkedKeys.remove(key);
+      } else {
+        _bookmarkedKeys.add(key);
+      }
+    });
+
+    try {
+      if (wasBookmarked) {
+        await LenteraDatabase.deleteBookmark(
+          nis: nis,
+          surahNumber: surah.number,
+          ayat: ayah.numberInSurah,
+        );
+      } else {
+        await LenteraDatabase.saveBookmark(
+          nis: nis,
+          nama: student['nama']?.toString() ?? '',
+          surahNumber: surah.number,
+          surahName: surah.name,
+          ayat: ayah.numberInSurah,
+          latin: ayah.latinText,
+          translation: ayah.translation,
+        );
+      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(wasBookmarked ? 'Bookmark dihapus.' : 'Ayat ditambahkan ke bookmark.'),
+          duration: const Duration(milliseconds: 900),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        if (wasBookmarked) {
+          _bookmarkedKeys.add(key);
+        } else {
+          _bookmarkedKeys.remove(key);
+        }
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Bookmark gagal disimpan: $e')),
+      );
+    }
+  }
+
+  QuranSurahInfo? _surahByNumber(int? number) {
+    if (number == null) return null;
+    for (final surah in _surahs) {
+      if (surah.number == number) return surah;
+    }
+    return null;
+  }
+
   Future<void> _loadSurahs() async {
     setState(() {
       _loadingSurahs = true;
@@ -4265,11 +4424,18 @@ class _QuranReaderPageState extends State<QuranReaderPage>
 
       setState(() {
         _surahs = List<QuranSurahInfo>.from(_surahCache!);
-        _selectedSurah = _selectedSurah ?? _surahs.first;
+        _selectedSurah = _selectedSurah ??
+            (_surahByNumber(widget.initialSurahNumber) ?? _surahs.first);
         _loadingSurahs = false;
       });
 
       await _loadAyahs(_selectedSurah!);
+      if (widget.initialAyah != null && widget.initialSurahNumber == _selectedSurah!.number) {
+        final target = widget.initialAyah!;
+        if (_ayahs.any((ayah) => ayah.numberInSurah == target) && mounted) {
+          setState(() => _lastAyah = target);
+        }
+      }
       await _startLiveTracking();
     } catch (e) {
       if (!mounted) return;
@@ -4455,6 +4621,19 @@ class _QuranReaderPageState extends State<QuranReaderPage>
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           actions: [
+            IconButton(
+              tooltip: 'Bookmark saya',
+              onPressed: widget.student == null
+                  ? null
+                  : () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => BookmarkPage(student: widget.student!),
+                        ),
+                      );
+                    },
+              icon: const Icon(Icons.bookmarks_outlined),
+            ),
             Padding(
               padding: const EdgeInsets.only(right: 12),
               child: Center(
@@ -4651,12 +4830,23 @@ class _QuranReaderPageState extends State<QuranReaderPage>
                       ),
                     ),
                     const Spacer(),
-                    if (selected)
-                      const Icon(
-                        Icons.bookmark_rounded,
-                        color: primaryColor,
-                        size: 20,
+                    IconButton(
+                      tooltip: _isBookmarked(ayah.numberInSurah)
+                          ? 'Hapus bookmark'
+                          : 'Simpan bookmark',
+                      onPressed: _loadingBookmarks
+                          ? null
+                          : () => _toggleBookmark(ayah),
+                      icon: Icon(
+                        _isBookmarked(ayah.numberInSurah)
+                            ? Icons.bookmark_rounded
+                            : Icons.bookmark_border_rounded,
+                        color: _isBookmarked(ayah.numberInSurah)
+                            ? primaryColor
+                            : Colors.grey.shade600,
+                        size: 23,
                       ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 14),
@@ -4731,6 +4921,187 @@ class _QuranReaderPageState extends State<QuranReaderPage>
           ),
         );
       },
+    );
+  }
+}
+
+class BookmarkPage extends StatefulWidget {
+  final Map<String, dynamic> student;
+
+  const BookmarkPage({
+    super.key,
+    required this.student,
+  });
+
+  @override
+  State<BookmarkPage> createState() => _BookmarkPageState();
+}
+
+class _BookmarkPageState extends State<BookmarkPage> {
+  bool _loading = true;
+  List<Map<String, dynamic>> _bookmarks = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final items = await LenteraDatabase.getBookmarks(
+        nis: widget.student['nis']?.toString() ?? '',
+      );
+      if (!mounted) return;
+      setState(() {
+        _bookmarks = items;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Bookmark tidak dapat dimuat: $e')),
+      );
+    }
+  }
+
+  Future<void> _delete(Map<String, dynamic> item) async {
+    final nis = widget.student['nis']?.toString() ?? '';
+    final surahNumber = (item['surahNumber'] as num?)?.toInt() ?? 0;
+    final ayat = (item['ayat'] as num?)?.toInt() ?? 0;
+    try {
+      await LenteraDatabase.deleteBookmark(
+        nis: nis,
+        surahNumber: surahNumber,
+        ayat: ayat,
+      );
+      await _load();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Bookmark gagal dihapus: $e')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Bookmark Ayat',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator(color: primaryColor))
+          : _bookmarks.isEmpty
+              ? const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.bookmark_border_rounded, size: 58, color: Colors.grey),
+                        SizedBox(height: 12),
+                        Text(
+                          'Belum ada ayat yang disimpan.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.grey, fontSize: 16),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _load,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _bookmarks.length,
+                    itemBuilder: (context, index) {
+                      final item = _bookmarks[index];
+                      final surahNumber = (item['surahNumber'] as num?)?.toInt() ?? 0;
+                      final ayat = (item['ayat'] as num?)?.toInt() ?? 0;
+                      final surahName = item['surahName']?.toString() ?? '';
+                      final latin = item['latin']?.toString() ?? '';
+                      final translation = item['translation']?.toString() ?? '';
+
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        color: Colors.white,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => QuranReaderPage(
+                                  student: widget.student,
+                                  initialSurahNumber: surahNumber,
+                                  initialAyah: ayat,
+                                ),
+                              ),
+                            );
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(Icons.bookmark_rounded, color: primaryColor),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        '$surahNumber. $surahName — Ayat $ayat',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: darkGreen,
+                                        ),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'Hapus',
+                                      onPressed: () => _delete(item),
+                                      icon: const Icon(Icons.delete_outline_rounded),
+                                    ),
+                                  ],
+                                ),
+                                if (latin.isNotEmpty) ...[
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    latin,
+                                    style: const TextStyle(
+                                      fontStyle: FontStyle.italic,
+                                      color: Color(0xFF334A46),
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                ],
+                                if (translation.isNotEmpty) ...[
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    translation,
+                                    style: const TextStyle(
+                                      color: Color(0xFF5A6663),
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                ],
+                                const SizedBox(height: 8),
+                                const Text(
+                                  'Ketuk untuk kembali membaca ayat ini.',
+                                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
     );
   }
 }
