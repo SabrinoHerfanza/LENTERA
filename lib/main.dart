@@ -1,7 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
-
-import 'package:http/http.dart' as http;
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -64,7 +61,7 @@ class LenteraApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const AuthGate(),
+      home: const StartupGate(),
     );
   }
 }
@@ -77,6 +74,32 @@ const Color primaryColor = Color(0xFF0B6B5F);
 const Color darkGreen = Color(0xFF123B3B);
 const Color lightGreen = Color(0xFFE8F3F0);
 const Color backgroundColor = Color(0xFFF8FAF8);
+
+
+const List<String> quranSurahs = [
+  'Al-Fatihah', 'Al-Baqarah', 'Ali Imran', 'An-Nisa', 'Al-Maidah',
+  'Al-Anam', 'Al-Araf', 'Al-Anfal', 'At-Taubah', 'Yunus',
+  'Hud', 'Yusuf', 'Ar-Rad', 'Ibrahim', 'Al-Hijr', 'An-Nahl',
+  'Al-Isra', 'Al-Kahfi', 'Maryam', 'Taha', 'Al-Anbiya', 'Al-Hajj',
+  'Al-Muminun', 'An-Nur', 'Al-Furqan', 'Asy-Syuara', 'An-Naml',
+  'Al-Qasas', 'Al-Ankabut', 'Ar-Rum', 'Luqman', 'As-Sajdah',
+  'Al-Ahzab', 'Saba', 'Fatir', 'Yasin', 'As-Saffat', 'Sad',
+  'Az-Zumar', 'Ghafir', 'Fussilat', 'Asy-Syura', 'Az-Zukhruf',
+  'Ad-Dukhan', 'Al-Jasiyah', 'Al-Ahqaf', 'Muhammad', 'Al-Fath',
+  'Al-Hujurat', 'Qaf', 'Az-Zariyat', 'At-Tur', 'An-Najm',
+  'Al-Qamar', 'Ar-Rahman', 'Al-Waqiah', 'Al-Hadid', 'Al-Mujadilah',
+  'Al-Hasyr', 'Al-Mumtahanah', 'As-Saff', 'Al-Jumuah', 'Al-Munafiqun',
+  'At-Tagabun', 'At-Talaq', 'At-Tahrim', 'Al-Mulk', 'Al-Qalam',
+  'Al-Haqqah', 'Al-Maarij', 'Nuh', 'Al-Jinn', 'Al-Muzzammil',
+  'Al-Muddassir', 'Al-Qiyamah', 'Al-Insan', 'Al-Mursalat', 'An-Naba',
+  'An-Naziat', 'Abasa', 'At-Takwir', 'Al-Infitar', 'Al-Mutaffifin',
+  'Al-Insyiqaq', 'Al-Buruj', 'At-Tariq', 'Al-Ala', 'Al-Gasyiyah',
+  'Al-Fajr', 'Al-Balad', 'Asy-Syams', 'Al-Lail', 'Ad-Duha',
+  'Asy-Syarh', 'At-Tin', 'Al-Alaq', 'Al-Qadr', 'Al-Bayyinah',
+  'Az-Zalzalah', 'Al-Adiyat', 'Al-Qariah', 'At-Takasur', 'Al-Asr',
+  'Al-Humazah', 'Al-Fil', 'Quraisy', 'Al-Maun', 'Al-Kausar',
+  'Al-Kafirun', 'An-Nasr', 'Al-Lahab', 'Al-Ikhlas', 'Al-Falaq', 'An-Nas',
+];
 
 // ============================================================
 // AUTH GATE
@@ -115,40 +138,71 @@ class AuthGate extends StatelessWidget {
 // SPLASH
 // ============================================================
 
+class StartupGate extends StatefulWidget {
+  const StartupGate({super.key});
+
+  @override
+  State<StartupGate> createState() => _StartupGateState();
+}
+
+class _StartupGateState extends State<StartupGate> {
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const AuthGate()),
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => const SplashScreen();
+}
+
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       backgroundColor: backgroundColor,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            LenteraLogo(size: 82),
-            SizedBox(height: 20),
-            Text(
-              'LENTERA',
-              style: TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.w800,
-                color: darkGreen,
-                letterSpacing: 1,
-              ),
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 28),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(
+                  'assets/lentera_logo_full.png',
+                  width: 420,
+                  height: 260,
+                  fit: BoxFit.contain,
+                ),
+                const SizedBox(height: 28),
+                const SizedBox(
+                  width: 32,
+                  height: 32,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
+                    color: primaryColor,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Memuat LENTERA...',
+                  style: TextStyle(
+                    color: darkGreen,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: .4,
+                  ),
+                ),
+              ],
             ),
-            SizedBox(height: 8),
-            Text(
-              'Literasi Edukasi Narasi Terpadu',
-              style: TextStyle(
-                color: Colors.grey,
-              ),
-            ),
-            SizedBox(height: 30),
-            CircularProgressIndicator(
-              color: primaryColor,
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -169,35 +223,11 @@ class LenteraLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Image.asset(
+      'assets/lentera_logo.png',
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        color: lightGreen,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: primaryColor.withOpacity(.18),
-          width: 2,
-        ),
-      ),
-      child: ClipOval(
-        child: Padding(
-          padding: EdgeInsets.all(size * .10),
-          child: Image.asset(
-            'assets/lentera_logo.png',
-            width: size * .80,
-            height: size * .80,
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) {
-              return Icon(
-                Icons.menu_book_rounded,
-                size: size * .48,
-                color: primaryColor,
-              );
-            },
-          ),
-        ),
-      ),
+      fit: BoxFit.contain,
     );
   }
 }
@@ -762,64 +792,73 @@ class LenteraDatabase {
     });
   }
 
+
   // ----------------------------------------------------------
-  // BOOKMARK AYAT
+  // LIVE TRACKING SESI MENGAJI
   // ----------------------------------------------------------
 
-  static Future<List<Map<String, dynamic>>> getBookmarks({
-    required String nis,
-  }) async {
-    if (nis.trim().isEmpty) return [];
-    final snapshot = await root.child('bookmarks').child(nis).get();
-    if (!snapshot.exists || snapshot.value is! Map) return [];
+  static DatabaseReference liveSessionRef(String nis) =>
+      root.child('sesi_mengaji').child(nis);
 
-    final value = Map<String, dynamic>.from(snapshot.value as Map);
-    final result = <Map<String, dynamic>>[];
-    for (final entry in value.entries) {
-      if (entry.value is! Map) continue;
-      final item = Map<String, dynamic>.from(entry.value as Map);
-      item['id'] = entry.key.toString();
-      result.add(item);
-    }
-    result.sort((a, b) =>
-        (a['surahNumber'] ?? 0).toString().compareTo((b['surahNumber'] ?? 0).toString()));
-    return result;
-  }
-
-  static Future<void> saveBookmark({
+  static Future<void> startLiveSession({
     required String nis,
     required String nama,
-    required int surahNumber,
-    required String surahName,
+    required String kelas,
+    required String surat,
     required int ayat,
-    required String latin,
-    required String translation,
+    required int durationSeconds,
   }) async {
-    if (nis.trim().isEmpty) return;
-    final key = '${surahNumber}_$ayat';
-    await root.child('bookmarks').child(nis).child(key).set({
+    final ref = liveSessionRef(nis);
+
+    await ref.set({
       'nis': nis,
       'nama': nama,
-      'surahNumber': surahNumber,
-      'surahName': surahName,
+      'kelas': kelas,
+      'surat': surat,
       'ayat': ayat,
-      'latin': latin,
-      'translation': translation,
-      'timestamp': ServerValue.timestamp,
+      'durasiDetik': durationSeconds,
+      'active': true,
+      'status': 'Sedang membaca',
+      'mulaiAt': ServerValue.timestamp,
+      'updatedAt': ServerValue.timestamp,
+    });
+
+    await ref.onDisconnect().update({
+      'active': false,
+      'status': 'Terputus',
+      'updatedAt': ServerValue.timestamp,
     });
   }
 
-  static Future<void> deleteBookmark({
+  static Future<void> updateLiveSession({
     required String nis,
-    required int surahNumber,
+    required String nama,
+    required String kelas,
+    required String surat,
     required int ayat,
+    required int durationSeconds,
+    bool active = true,
+    String status = 'Sedang membaca',
   }) async {
-    if (nis.trim().isEmpty) return;
-    await root
-        .child('bookmarks')
-        .child(nis)
-        .child('${surahNumber}_$ayat')
-        .remove();
+    await liveSessionRef(nis).update({
+      'nis': nis,
+      'nama': nama,
+      'kelas': kelas,
+      'surat': surat,
+      'ayat': ayat,
+      'durasiDetik': durationSeconds,
+      'active': active,
+      'status': status,
+      'updatedAt': ServerValue.timestamp,
+    });
+  }
+
+  static Future<void> endLiveSession(String nis) async {
+    final ref = liveSessionRef(nis);
+    try {
+      await ref.onDisconnect().cancel();
+    } catch (_) {}
+    await ref.remove();
   }
 
   // ----------------------------------------------------------
@@ -831,8 +870,8 @@ class LenteraDatabase {
     required String nama,
     required String kelas,
     required int durationSeconds,
+    required String surat,
     required int lastAyat,
-    required String surah,
   }) async {
     final now = DateTime.now();
 
@@ -841,134 +880,25 @@ class LenteraDatabase {
         '${now.month.toString().padLeft(2, '0')}-'
         '${now.day.toString().padLeft(2, '0')}';
 
-    // Gunakan push() agar setiap sesi membaca tersimpan sebagai aktivitas baru.
-    // Jika memakai tanggal sebagai key, membaca beberapa kali dalam sehari
-    // akan menimpa data sebelumnya.
     await root
         .child('progres')
         .child(nis)
-        .push()
+        .child(date)
         .set({
       'nis': nis,
       'nama': nama,
       'kelas': kelas,
       'tanggal': date,
       'durasiDetik': durationSeconds,
-      'surah': surah,
+      'surat': surat,
       'ayatTerakhir': lastAyat,
       'timestamp': ServerValue.timestamp,
     });
   }
 
   // ----------------------------------------------------------
-  // LIVE TRACKING MEMBACA
-  // ----------------------------------------------------------
-
-  static Future<void> startLiveSession({
-    required String nis,
-    required String nama,
-    required String kelas,
-    required String surah,
-    required int ayat,
-    required int durationSeconds,
-  }) async {
-    if (nis.trim().isEmpty) return;
-
-    await root.child('live_sessions').child(nis).set({
-      'nis': nis,
-      'nama': nama,
-      'kelas': kelas,
-      'surah': surah,
-      'ayat': ayat,
-      'durationSeconds': durationSeconds,
-      'status': 'active',
-      'startedAt': ServerValue.timestamp,
-      'updatedAt': ServerValue.timestamp,
-    });
-  }
-
-  static Future<void> updateLiveSession({
-    required String nis,
-    required String nama,
-    required String kelas,
-    required String surah,
-    required int ayat,
-    required int durationSeconds,
-    String status = 'active',
-  }) async {
-    if (nis.trim().isEmpty) return;
-
-    await root.child('live_sessions').child(nis).update({
-      'nis': nis,
-      'nama': nama,
-      'kelas': kelas,
-      'surah': surah,
-      'ayat': ayat,
-      'durationSeconds': durationSeconds,
-      'status': status,
-      'updatedAt': ServerValue.timestamp,
-    });
-  }
-
-  static Future<void> endLiveSession({
-    required String nis,
-    required String nama,
-    required String kelas,
-    required String surah,
-    required int ayat,
-    required int durationSeconds,
-  }) async {
-    if (nis.trim().isEmpty) return;
-
-    await root.child('live_sessions').child(nis).update({
-      'nis': nis,
-      'nama': nama,
-      'kelas': kelas,
-      'surah': surah,
-      'ayat': ayat,
-      'durationSeconds': durationSeconds,
-      'status': 'completed',
-      'endedAt': ServerValue.timestamp,
-      'updatedAt': ServerValue.timestamp,
-    });
-  }
-
-  static Future<List<Map<String, dynamic>>> getLiveSessions() async {
-    final snapshot = await root.child('live_sessions').get();
-    if (!snapshot.exists || snapshot.value is! Map) return [];
-
-    final value = Map<String, dynamic>.from(snapshot.value as Map);
-    final result = <Map<String, dynamic>>[];
-
-    for (final entry in value.entries) {
-      if (entry.value is! Map) continue;
-      final item = Map<String, dynamic>.from(entry.value as Map);
-      item['nis'] ??= entry.key.toString();
-      result.add(item);
-    }
-
-    result.sort((a, b) =>
-        (b['updatedAt'] ?? 0).toString().compareTo((a['updatedAt'] ?? 0).toString()));
-    return result;
-  }
-
-  // ----------------------------------------------------------
   // CATAT INTERUPSI
   // ----------------------------------------------------------
-
-  static Future<void> recordInterruption({
-    required String nis,
-    required String nama,
-    required String kelas,
-    required String message,
-  }) async {
-    await logInterruption(
-      nis: nis,
-      nama: nama,
-      kelas: kelas,
-      message: message,
-    );
-  }
 
   static Future<void> logInterruption({
     required String nis,
@@ -991,6 +921,30 @@ class LenteraDatabase {
           .toIso8601String(),
     });
   }
+  // Catat interupsi lengkap saat siswa meninggalkan halaman membaca.
+  static Future<void> recordInterruption({
+    required String nis,
+    required String nama,
+    required String kelas,
+    required String surat,
+    required int ayat,
+    required int durationSeconds,
+  }) async {
+    await root.child('interupsi').push().set({
+      'nis': nis,
+      'studentName': nama,
+      'nama': nama,
+      'className': kelas,
+      'kelas': kelas,
+      'surat': surat,
+      'ayat': ayat,
+      'durasiDetik': durationSeconds,
+      'message': 'Siswa meninggalkan halaman membaca',
+      'timestamp': ServerValue.timestamp,
+      'createdAt': DateTime.now().toIso8601String(),
+    });
+  }
+
 }
 
 // ============================================================
@@ -1019,10 +973,6 @@ class _AdminDashboardState
         return const AdminProgressPage();
       case 4:
         return const AdminInterruptionsPage();
-      case 5:
-        return const AdminLiveTrackingPage();
-      case 6:
-        return const QuranReaderPage();
       default:
         return const AdminOverviewPage();
     }
@@ -1034,8 +984,6 @@ class _AdminDashboardState
     'Absensi',
     'Progres Al-Qur\'an',
     'Interupsi Membaca',
-    'Live Tracking',
-    'Baca Al-Qur\'an',
   ];
 
   Future<void> _logout() async {
@@ -1147,18 +1095,6 @@ class _AdminDashboardState
               'Interupsi Membaca',
             ),
 
-            _drawerItem(
-              5,
-              Icons.radar_rounded,
-              'Live Tracking',
-            ),
-
-            _drawerItem(
-              6,
-              Icons.menu_book_rounded,
-              'Baca Al-Qur\'an',
-            ),
-
             const Spacer(),
 
             const Divider(),
@@ -1220,276 +1156,6 @@ class _AdminDashboardState
 
         Navigator.pop(context);
       },
-    );
-  }
-}
-
-// ============================================================
-// ADMIN LIVE TRACKING
-// ============================================================
-
-class AdminLiveTrackingPage extends StatefulWidget {
-  const AdminLiveTrackingPage({super.key});
-
-  @override
-  State<AdminLiveTrackingPage> createState() => _AdminLiveTrackingPageState();
-}
-
-class _AdminLiveTrackingPageState extends State<AdminLiveTrackingPage> {
-  StreamSubscription<DatabaseEvent>? _subscription;
-  List<Map<String, dynamic>> _sessions = [];
-  bool _loading = true;
-  String _selectedKelas = 'Semua Kelas';
-
-  @override
-  void initState() {
-    super.initState();
-    _listen();
-  }
-
-  void _listen() {
-    _subscription = LenteraDatabase.root.child('live_sessions').onValue.listen((event) {
-      final value = event.snapshot.value;
-      final sessions = <Map<String, dynamic>>[];
-
-      if (value is Map) {
-        for (final entry in value.entries) {
-          if (entry.value is! Map) continue;
-          final item = Map<String, dynamic>.from(entry.value as Map);
-          item['nis'] ??= entry.key.toString();
-          sessions.add(item);
-        }
-      }
-
-      sessions.sort((a, b) {
-        final aActive = a['status'] == 'active';
-        final bActive = b['status'] == 'active';
-        if (aActive != bActive) return aActive ? -1 : 1;
-        return (b['updatedAt'] ?? 0).toString().compareTo((a['updatedAt'] ?? 0).toString());
-      });
-
-      if (!mounted) return;
-      setState(() {
-        _sessions = sessions;
-        _loading = false;
-      });
-    }, onError: (error) {
-      if (!mounted) return;
-      setState(() => _loading = false);
-    });
-  }
-
-  @override
-  void dispose() {
-    _subscription?.cancel();
-    super.dispose();
-  }
-
-  List<Map<String, dynamic>> get _filteredSessions {
-    if (_selectedKelas == 'Semua Kelas') return _sessions;
-    return _sessions.where((s) => s['kelas']?.toString() == _selectedKelas).toList();
-  }
-
-  List<String> get _kelasList {
-    final set = <String>{};
-    for (final s in _sessions) {
-      final k = s['kelas']?.toString() ?? '';
-      if (k.isNotEmpty) set.add(k);
-    }
-    final sorted = set.toList()..sort();
-    return ['Semua Kelas', ...sorted];
-  }
-
-  String _statusText(String? status) {
-    switch (status) {
-      case 'active':
-        return 'SEDANG MEMBACA';
-      case 'paused':
-        return 'TERJEDA';
-      case 'completed':
-        return 'SELESAI';
-      default:
-        return (status ?? 'UNKNOWN').toUpperCase();
-    }
-  }
-
-  Color _statusColor(String? status) {
-    switch (status) {
-      case 'active':
-        return Colors.green;
-      case 'paused':
-        return Colors.orange;
-      case 'completed':
-        return Colors.blueGrey;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  String _duration(dynamic value) {
-    final seconds = int.tryParse(value?.toString() ?? '') ?? 0;
-    final m = seconds ~/ 60;
-    final s = seconds % 60;
-    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final filtered = _filteredSessions;
-    final activeCount = filtered.where((e) => e['status'] == 'active').length;
-
-    if (_loading) {
-      return const Center(child: CircularProgressIndicator(color: primaryColor));
-    }
-
-    return RefreshIndicator(
-      onRefresh: () async {
-        final sessions = await LenteraDatabase.getLiveSessions();
-        if (mounted) setState(() => _sessions = sessions);
-      },
-      child: ListView(
-        padding: const EdgeInsets.all(18),
-        children: [
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: darkGreen,
-              borderRadius: BorderRadius.circular(22),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.radar_rounded, color: Colors.white, size: 42),
-                const SizedBox(width: 15),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Live Tracking Membaca',
-                        style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        '$activeCount siswa sedang membaca sekarang',
-                        style: const TextStyle(color: Colors.white70),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          // ── Filter Kelas ──
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFD8E1DE)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.filter_list_rounded, color: primaryColor, size: 20),
-                const SizedBox(width: 10),
-                const Text('Filter Kelas:', style: TextStyle(fontWeight: FontWeight.w600, color: darkGreen)),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: _selectedKelas,
-                      isExpanded: true,
-                      isDense: true,
-                      borderRadius: BorderRadius.circular(12),
-                      items: _kelasList.map((k) => DropdownMenuItem(
-                        value: k,
-                        child: Text(k, style: const TextStyle(fontSize: 14)),
-                      )).toList(),
-                      onChanged: (val) {
-                        if (val != null) setState(() => _selectedKelas = val);
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          if (filtered.isEmpty)
-            const EmptyCard(
-              icon: Icons.menu_book_outlined,
-              text: 'Belum ada sesi membaca yang tercatat.',
-            )
-          else
-            ...filtered.map((session) {
-              final status = session['status']?.toString();
-              final statusColor = _statusColor(status);
-              return Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: statusColor.withOpacity(.25)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          backgroundColor: statusColor.withOpacity(.12),
-                          child: Icon(Icons.person, color: statusColor),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                session['nama']?.toString() ?? '-',
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                              ),
-                              Text('NIS ${session['nis'] ?? '-'} • Kelas ${session['kelas'] ?? '-'}'),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: statusColor.withOpacity(.10),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            _statusText(status),
-                            style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 11),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Divider(height: 24),
-                    Row(
-                      children: [
-                        const Icon(Icons.menu_book_outlined, size: 20, color: primaryColor),
-                        const SizedBox(width: 8),
-                        Expanded(child: Text('Surah: ${session['surah'] ?? '-'}')),
-                        Text('Ayat ${session['ayat'] ?? 1}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        const Icon(Icons.timer_outlined, size: 20, color: primaryColor),
-                        const SizedBox(width: 8),
-                        Text('Durasi ${_duration(session['durationSeconds'])}'),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            }),
-        ],
-      ),
     );
   }
 }
@@ -1761,6 +1427,8 @@ class _AdminStudentsPageState
 
   List<Map<String, dynamic>> _students = [];
   List<Map<String, dynamic>> _filtered = [];
+  final Map<String, Map<String, dynamic>> _liveSessions = {};
+  StreamSubscription<DatabaseEvent>? _liveSubscription;
 
   @override
   void initState() {
@@ -1771,10 +1439,41 @@ class _AdminStudentsPageState
     );
 
     _load();
+    _listenLiveSessions();
+  }
+
+  void _listenLiveSessions() {
+    _liveSubscription = FirebaseDatabase.instance
+        .ref('sesi_mengaji')
+        .onValue
+        .listen((event) {
+      final next = <String, Map<String, dynamic>>{};
+      final value = event.snapshot.value;
+
+      if (value is Map) {
+        for (final entry in value.entries) {
+          if (entry.value is! Map) continue;
+          final session = Map<String, dynamic>.from(entry.value as Map);
+          final nis = session['nis']?.toString() ?? entry.key.toString();
+          final active = session['active'] == true;
+          if (active) {
+            next[nis] = session;
+          }
+        }
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _liveSessions
+          ..clear()
+          ..addAll(next);
+      });
+    });
   }
 
   @override
   void dispose() {
+    _liveSubscription?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -1867,7 +1566,47 @@ class _AdminStudentsPageState
             ),
           ),
 
-          const SizedBox(height: 18),
+          const SizedBox(height: 14),
+
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 12,
+            ),
+            decoration: BoxDecoration(
+              color: lightGreen,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.wifi_tethering,
+                  color: primaryColor,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '${_liveSessions.length} siswa sedang membaca',
+                    style: const TextStyle(
+                      color: darkGreen,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const Text(
+                  'LIVE',
+                  style: TextStyle(
+                    color: primaryColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 14),
 
           Text(
             '${_filtered.length} siswa ditemukan',
@@ -1889,6 +1628,7 @@ class _AdminStudentsPageState
               (student) =>
                   StudentCard(
                 student: student,
+                liveSession: _liveSessions[student['nis']?.toString()],
               ),
             ),
         ],
@@ -1903,91 +1643,173 @@ class _AdminStudentsPageState
 
 class StudentCard extends StatelessWidget {
   final Map<String, dynamic> student;
+  final Map<String, dynamic>? liveSession;
 
   const StudentCard({
     super.key,
     required this.student,
+    this.liveSession,
   });
 
   @override
   Widget build(BuildContext context) {
-    final nama =
-        student['nama']
-            ?.toString() ??
-        'Tanpa Nama';
+    final nama = student['nama']?.toString() ?? 'Tanpa Nama';
+    final nis = student['nis']?.toString() ?? '-';
+    final kelas = student['kelas']?.toString() ?? '-';
+    final isLive = liveSession?['active'] == true;
 
-    final nis =
-        student['nis']
-            ?.toString() ??
-        '-';
-
-    final kelas =
-        student['kelas']
-            ?.toString() ??
-        '-';
+    final surat = liveSession?['surat']?.toString() ?? '-';
+    final ayat = liveSession?['ayat']?.toString() ?? '-';
+    final duration = _formatLiveDuration(liveSession?['durasiDetik']);
 
     return Card(
       elevation: 0,
-      margin: const EdgeInsets.only(
-        bottom: 10,
-      ),
+      margin: const EdgeInsets.only(bottom: 10),
       color: Colors.white,
       shape: RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.circular(16),
-        side: const BorderSide(
-          color: Color(0xFFE0E8E5),
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: isLive ? primaryColor.withOpacity(0.35) : const Color(0xFFE0E8E5),
         ),
       ),
-      child: ListTile(
-        contentPadding:
-            const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 6,
-        ),
-        leading: CircleAvatar(
-          backgroundColor: lightGreen,
-          child: Text(
-            nama.isNotEmpty
-                ? nama[0].toUpperCase()
-                : '?',
-            style: const TextStyle(
-              color: primaryColor,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        title: Text(
-          nama,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: darkGreen,
-          ),
-        ),
-        subtitle: Text(
-          'NIS: $nis  •  Kelas: $kelas',
-        ),
-        trailing: const Icon(
-          Icons.chevron_right,
-        ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
         onTap: () {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) =>
-                  StudentDetailPage(
-                student: student,
-              ),
+              builder: (_) => StudentDetailPage(student: student),
             ),
           );
         },
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    backgroundColor: lightGreen,
+                    child: Text(
+                      nama.isNotEmpty ? nama[0].toUpperCase() : '?',
+                      style: const TextStyle(
+                        color: primaryColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          nama,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: darkGreen,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text('NIS: $nis  •  Kelas: $kelas'),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    isLive ? Icons.circle : Icons.circle_outlined,
+                    size: 13,
+                    color: isLive ? Colors.green : Colors.grey,
+                  ),
+                ],
+              ),
+              if (isLive) ...[
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: lightGreen,
+                    borderRadius: BorderRadius.circular(13),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.menu_book_rounded,
+                            size: 18,
+                            color: primaryColor,
+                          ),
+                          const SizedBox(width: 7),
+                          const Expanded(
+                            child: Text(
+                              'SEDANG MEMBACA',
+                              style: TextStyle(
+                                color: primaryColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            duration,
+                            style: const TextStyle(
+                              color: darkGreen,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Surat: $surat  •  Ayat: $ayat',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: darkGreen,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      const Text(
+                        'Data diperbarui otomatis secara realtime.',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ] else ...[
+                const SizedBox(height: 8),
+                const Text(
+                  'Belum sedang membaca',
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
+  }
+
+  String _formatLiveDuration(dynamic value) {
+    final seconds = value is num
+        ? value.toInt()
+        : int.tryParse(value?.toString() ?? '') ?? 0;
+    final minutes = seconds ~/ 60;
+    final secs = seconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
   }
 }
 
 // ============================================================
-// STUDENT DETAIL
+// STUDENT DETAIL + LIVE TRACKING
 // ============================================================
 
 class StudentDetailPage extends StatelessWidget {
@@ -1998,100 +1820,85 @@ class StudentDetailPage extends StatelessWidget {
     required this.student,
   });
 
+  String _formatDuration(dynamic value) {
+    final seconds = value is num
+        ? value.toInt()
+        : int.tryParse(value?.toString() ?? '') ?? 0;
+
+    final minutes = seconds ~/ 60;
+    final secs = seconds % 60;
+
+    return '${minutes.toString().padLeft(2, '0')}:'
+        '${secs.toString().padLeft(2, '0')}';
+  }
+
   @override
   Widget build(BuildContext context) {
-    final nama =
-        student['nama']
-            ?.toString() ??
-        '-';
+    final nama = student['nama']?.toString() ?? '-';
+    final nis = student['nis']?.toString() ?? '-';
+    final nisn = student['nisn']?.toString() ?? '-';
+    final kelas = student['kelas']?.toString() ?? '-';
+    final gender = student['jenisKelamin']?.toString() ?? '-';
+    final email = student['email']?.toString() ?? '-';
 
-    final nis =
-        student['nis']
-            ?.toString() ??
-        '-';
-
-    final nisn =
-        student['nisn']
-            ?.toString() ??
-        '-';
-
-    final kelas =
-        student['kelas']
-            ?.toString() ??
-        '-';
-
-    final gender =
-        student['jenisKelamin']
-            ?.toString() ??
-        '-';
-
-    final email =
-        student['email']
-            ?.toString() ??
-        '-';
+    // Dengarkan khusus siswa yang sedang dibuka.
+    final liveRef =
+        FirebaseDatabase.instance.ref('sesi_mengaji/$nis');
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Detail Siswa',
-        ),
+        title: const Text('Detail Siswa'),
       ),
+
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+
+          // ======================================================
+          // BIODATA
+          // ======================================================
+
           Container(
-            padding:
-                const EdgeInsets.all(22),
+            padding: const EdgeInsets.all(22),
             decoration: BoxDecoration(
               color: darkGreen,
-              borderRadius:
-                  BorderRadius.circular(22),
+              borderRadius: BorderRadius.circular(22),
             ),
             child: Column(
               children: [
                 CircleAvatar(
                   radius: 38,
-                  backgroundColor:
-                      Colors.white,
+                  backgroundColor: Colors.white,
                   child: Text(
                     nama.isNotEmpty
-                        ? nama[0]
-                            .toUpperCase()
+                        ? nama[0].toUpperCase()
                         : '?',
-                    style:
-                        const TextStyle(
+                    style: const TextStyle(
                       fontSize: 28,
-                      fontWeight:
-                          FontWeight.bold,
-                      color:
-                          primaryColor,
+                      fontWeight: FontWeight.bold,
+                      color: primaryColor,
                     ),
                   ),
                 ),
-                const SizedBox(
-                  height: 14,
-                ),
+
+                const SizedBox(height: 14),
+
                 Text(
                   nama,
-                  textAlign:
-                      TextAlign.center,
-                  style:
-                      const TextStyle(
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 22,
-                    fontWeight:
-                        FontWeight.bold,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(
-                  height: 5,
-                ),
+
+                const SizedBox(height: 5),
+
                 Text(
                   'NIS $nis',
-                  style:
-                      const TextStyle(
-                    color:
-                        Colors.white70,
+                  style: const TextStyle(
+                    color: Colors.white70,
                   ),
                 ),
               ],
@@ -2099,6 +1906,227 @@ class StudentDetailPage extends StatelessWidget {
           ),
 
           const SizedBox(height: 20),
+
+          // ======================================================
+          // LIVE TRACKING
+          // ======================================================
+
+          StreamBuilder<DatabaseEvent>(
+            stream: liveRef.onValue,
+
+            builder: (context, snapshot) {
+              Map<String, dynamic>? liveData;
+
+              if (snapshot.hasData &&
+                  snapshot.data!.snapshot.value != null) {
+
+                final raw =
+                    snapshot.data!.snapshot.value;
+
+                if (raw is Map) {
+                  liveData =
+                      Map<String, dynamic>.from(raw);
+                }
+              }
+
+              final isLive =
+                  liveData?['active'] == true;
+
+              final surat =
+                  liveData?['surat']?.toString() ?? '-';
+
+              final ayat =
+                  liveData?['ayat']?.toString() ?? '-';
+
+              final durasi =
+                  liveData?['durasiDetik'];
+
+              final status =
+                  liveData?['status']?.toString() ??
+                  'Tidak sedang membaca';
+
+              return Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+
+                decoration: BoxDecoration(
+                  color: isLive
+                      ? lightGreen
+                      : Colors.white,
+
+                  borderRadius:
+                      BorderRadius.circular(20),
+
+                  border: Border.all(
+                    color: isLive
+                        ? primaryColor
+                        : const Color(0xFFE0E8E5),
+                    width: isLive ? 1.5 : 1,
+                  ),
+                ),
+
+                child: Column(
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
+
+                  children: [
+
+                    // HEADER LIVE
+                    Row(
+                      children: [
+
+                        Icon(
+                          isLive
+                              ? Icons.circle
+                              : Icons.circle_outlined,
+
+                          color: isLive
+                              ? Colors.green
+                              : Colors.grey,
+
+                          size: 14,
+                        ),
+
+                        const SizedBox(width: 8),
+
+                        Expanded(
+                          child: Text(
+                            isLive
+                                ? 'SEDANG MEMBACA AL-QUR\'AN'
+                                : 'TIDAK SEDANG MEMBACA',
+
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight:
+                                  FontWeight.bold,
+
+                              color: isLive
+                                  ? primaryColor
+                                  : Colors.grey,
+                            ),
+                          ),
+                        ),
+
+                        if (isLive)
+                          const Text(
+                            'LIVE',
+                            style: TextStyle(
+                              color: Colors.green,
+                              fontWeight:
+                                  FontWeight.bold,
+                            ),
+                          ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // STATUS
+                    Container(
+                      width: double.infinity,
+                      padding:
+                          const EdgeInsets.all(14),
+
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius:
+                            BorderRadius.circular(14),
+                      ),
+
+                      child: Row(
+                        children: [
+
+                          const Icon(
+                            Icons.info_outline,
+                            color: primaryColor,
+                          ),
+
+                          const SizedBox(width: 10),
+
+                          Expanded(
+                            child: Text(
+                              status,
+                              style:
+                                  const TextStyle(
+                                fontWeight:
+                                    FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 18),
+
+                    // POSISI BACAAN
+                    const Text(
+                      'Posisi Bacaan Saat Ini',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                        color: darkGreen,
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    Row(
+                      children: [
+
+                        Expanded(
+                          child: _LiveInfoBox(
+                            icon:
+                                Icons.menu_book_rounded,
+                            title: 'SURAT',
+                            value: surat,
+                          ),
+                        ),
+
+                        const SizedBox(width: 10),
+
+                        Expanded(
+                          child: _LiveInfoBox(
+                            icon:
+                                Icons.format_list_numbered,
+                            title: 'AYAT',
+                            value: ayat,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // DURASI
+                    _LiveInfoBox(
+                      icon: Icons.timer_outlined,
+                      title: 'DURASI MEMBACA',
+                      value: _formatDuration(durasi),
+                    ),
+
+                    const SizedBox(height: 14),
+
+                    if (isLive)
+                      const Text(
+                        'Perubahan surat dan ayat akan '
+                        'terlihat otomatis secara realtime.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            },
+          ),
+
+          const SizedBox(height: 20),
+
+          // ======================================================
+          // DATA SISWA
+          // ======================================================
 
           InfoTile(
             icon: Icons.badge_outlined,
@@ -2128,6 +2156,80 @@ class StudentDetailPage extends StatelessWidget {
             icon: Icons.email_outlined,
             title: 'Email',
             value: email,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+// ============================================================
+// LIVE INFO BOX
+// ============================================================
+
+class _LiveInfoBox extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String value;
+
+  const _LiveInfoBox({
+    required this.icon,
+    required this.title,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5FAF8),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: const Color(0xFFE0E8E5),
+        ),
+      ),
+
+      child: Column(
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
+
+        children: [
+
+          Row(
+            children: [
+              Icon(
+                icon,
+                size: 18,
+                color: primaryColor,
+              ),
+
+              const SizedBox(width: 6),
+
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: Colors.grey,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 6),
+
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.bold,
+              color: darkGreen,
+            ),
           ),
         ],
       ),
@@ -2196,89 +2298,61 @@ class AdminAttendancePage
       _AdminAttendancePageState();
 }
 
-class _AdminAttendancePageState
-    extends State<AdminAttendancePage> {
+class _AdminAttendancePageState extends State<AdminAttendancePage> {
   bool _loading = true;
-
   List<Map<String, dynamic>> _data = [];
+  String _selectedClass = 'Semua Kelas';
 
   @override
-  void initState() {
-    super.initState();
-    _load();
-  }
+  void initState() { super.initState(); _load(); }
 
   Future<void> _load() async {
-    setState(() {
-      _loading = true;
-    });
-
+    setState(() => _loading = true);
     try {
-      final data =
-          await LenteraDatabase.getAttendance();
-
+      final data = await LenteraDatabase.getAttendance();
       if (!mounted) return;
-
-      setState(() {
-        _data = data;
-        _loading = false;
-      });
-    } catch (e) {
+      setState(() { _data = data; _loading = false; });
+    } catch (_) {
       if (!mounted) return;
-
-      setState(() {
-        _loading = false;
-      });
+      setState(() => _loading = false);
     }
+  }
+
+  List<String> get _classes {
+    final classes = _data.map((e) => (e['kelas'] ?? e['className'] ?? '').toString().trim()).where((e) => e.isNotEmpty).toSet().toList();
+    classes.sort();
+    return ['Semua Kelas', ...classes];
+  }
+
+  List<Map<String, dynamic>> get _filteredData {
+    if (_selectedClass == 'Semua Kelas') return _data;
+    return _data.where((e) => (e['kelas'] ?? e['className'] ?? '').toString() == _selectedClass).toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) {
-      return const Center(
-        child: CircularProgressIndicator(
-          color: primaryColor,
-        ),
-      );
-    }
-
+    if (_loading) return const Center(child: CircularProgressIndicator(color: primaryColor));
+    final filtered = _filteredData;
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.calendar_month,
-                color: primaryColor,
-              ),
-              const SizedBox(width: 10),
-              Text(
-                '${_data.length} data absensi',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: darkGreen,
-                ),
-              ),
-            ],
+          Row(children: [
+            const Icon(Icons.calendar_month, color: primaryColor),
+            const SizedBox(width: 10),
+            Expanded(child: Text('${filtered.length} data absensi', style: const TextStyle(fontWeight: FontWeight.bold, color: darkGreen))),
+          ]),
+          const SizedBox(height: 14),
+          DropdownButtonFormField<String>(
+            value: _selectedClass,
+            decoration: const InputDecoration(labelText: 'Filter Kelas', prefixIcon: Icon(Icons.class_outlined)),
+            items: _classes.map((kelas) => DropdownMenuItem(value: kelas, child: Text(kelas))).toList(),
+            onChanged: (value) { if (value != null) setState(() => _selectedClass = value); },
           ),
-
           const SizedBox(height: 15),
-
-          if (_data.isEmpty)
-            const EmptyCard(
-              icon: Icons.event_busy_outlined,
-              text:
-                  'Belum ada data absensi.',
-            )
-          else
-            ..._data.map(
-              (item) =>
-                  AttendanceCard(
-                data: item,
-              ),
-            ),
+          if (filtered.isEmpty) const EmptyCard(icon: Icons.event_busy_outlined, text: 'Belum ada data absensi untuk kelas ini.')
+          else ...filtered.map((item) => AttendanceCard(data: item)),
         ],
       ),
     );
@@ -2389,91 +2463,59 @@ class AdminProgressPage
       _AdminProgressPageState();
 }
 
-class _AdminProgressPageState
-    extends State<AdminProgressPage> {
+class _AdminProgressPageState extends State<AdminProgressPage> {
   bool _loading = true;
-
   List<Map<String, dynamic>> _data = [];
+  String _selectedClass = 'Semua Kelas';
 
   @override
-  void initState() {
-    super.initState();
-    _load();
-  }
+  void initState() { super.initState(); _load(); }
 
   Future<void> _load() async {
-    setState(() {
-      _loading = true;
-    });
-
+    setState(() => _loading = true);
     try {
-      final data =
-          await LenteraDatabase.getProgress();
-
+      final data = await LenteraDatabase.getProgress();
       if (!mounted) return;
-
-      setState(() {
-        _data = data;
-        _loading = false;
-      });
+      setState(() { _data = data; _loading = false; });
     } catch (_) {
       if (!mounted) return;
-
-      setState(() {
-        _loading = false;
-      });
+      setState(() => _loading = false);
     }
+  }
+
+  List<String> get _classes {
+    final classes = _data.map((e) => (e['kelas'] ?? e['className'] ?? '').toString().trim()).where((e) => e.isNotEmpty).toSet().toList();
+    classes.sort();
+    return ['Semua Kelas', ...classes];
+  }
+
+  List<Map<String, dynamic>> get _filteredData {
+    if (_selectedClass == 'Semua Kelas') return _data;
+    return _data.where((e) => (e['kelas'] ?? e['className'] ?? '').toString() == _selectedClass).toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) {
-      return const Center(
-        child: CircularProgressIndicator(
-          color: primaryColor,
-        ),
-      );
-    }
-
+    if (_loading) return const Center(child: CircularProgressIndicator(color: primaryColor));
+    final filtered = _filteredData;
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          const Text(
-            'Progres Literasi Al-Qur\'an',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: darkGreen,
-            ),
-          ),
-
+          const Text('Progres Literasi Al-Qur\'an', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: darkGreen)),
           const SizedBox(height: 5),
-
-          Text(
-            '${_data.length} aktivitas membaca tercatat',
-            style: const TextStyle(
-              color: Colors.grey,
-            ),
-          ),
-
+          Text('${filtered.length} aktivitas membaca tercatat', style: const TextStyle(color: Colors.grey)),
           const SizedBox(height: 18),
-
-          if (_data.isEmpty)
-            const EmptyCard(
-              icon:
-                  Icons.menu_book_outlined,
-              text:
-                  'Belum ada progres membaca.',
-            )
-          else
-            ..._data.map(
-              (item) =>
-                  ProgressCard(
-                data: item,
-              ),
-            ),
+          DropdownButtonFormField<String>(
+            value: _selectedClass,
+            decoration: const InputDecoration(labelText: 'Filter Kelas', prefixIcon: Icon(Icons.class_outlined)),
+            items: _classes.map((kelas) => DropdownMenuItem(value: kelas, child: Text(kelas))).toList(),
+            onChanged: (value) { if (value != null) setState(() => _selectedClass = value); },
+          ),
+          const SizedBox(height: 15),
+          if (filtered.isEmpty) const EmptyCard(icon: Icons.menu_book_outlined, text: 'Belum ada progres membaca untuk kelas ini.')
+          else ...filtered.map((item) => ProgressCard(data: item)),
         ],
       ),
     );
@@ -2514,10 +2556,8 @@ class ProgressCard
             ?.toString() ??
         '-';
 
-    final surah =
-        data['surah']
-            ?.toString() ??
-        data['namaSurah']
+    final surat =
+        data['surat']
             ?.toString() ??
         '-';
 
@@ -2603,8 +2643,8 @@ class ProgressCard
               children: [
                 Expanded(
                   child: _ProgressInfo(
-                    title: 'Surah',
-                    value: surah,
+                    title: 'Surat',
+                    value: surat,
                   ),
                 ),
                 Expanded(
@@ -2696,7 +2736,6 @@ class _AdminInterruptionsPageState
   bool _loading = true;
 
   List<Map<String, dynamic>> _data = [];
-  String _selectedKelas = 'Semua Kelas';
 
   StreamSubscription<DatabaseEvent>?
       _subscription;
@@ -2744,24 +2783,6 @@ class _AdminInterruptionsPageState
     }
   }
 
-  List<Map<String, dynamic>> get _filteredData {
-    if (_selectedKelas == 'Semua Kelas') return _data;
-    return _data.where((item) {
-      final k = item['kelas']?.toString() ?? item['className']?.toString() ?? '';
-      return k == _selectedKelas;
-    }).toList();
-  }
-
-  List<String> get _kelasList {
-    final set = <String>{};
-    for (final item in _data) {
-      final k = item['kelas']?.toString() ?? item['className']?.toString() ?? '';
-      if (k.isNotEmpty) set.add(k);
-    }
-    final sorted = set.toList()..sort();
-    return ['Semua Kelas', ...sorted];
-  }
-
   @override
   Widget build(BuildContext context) {
     if (_loading) {
@@ -2771,8 +2792,6 @@ class _AdminInterruptionsPageState
         ),
       );
     }
-
-    final filtered = _filteredData;
 
     return RefreshIndicator(
       onRefresh: _load,
@@ -2810,47 +2829,10 @@ class _AdminInterruptionsPageState
             ),
           ),
 
-          const SizedBox(height: 16),
-
-          // ── Filter Kelas ──
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFD8E1DE)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.filter_list_rounded, color: primaryColor, size: 20),
-                const SizedBox(width: 10),
-                const Text('Filter Kelas:', style: TextStyle(fontWeight: FontWeight.w600, color: darkGreen)),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: _selectedKelas,
-                      isExpanded: true,
-                      isDense: true,
-                      borderRadius: BorderRadius.circular(12),
-                      items: _kelasList.map((k) => DropdownMenuItem(
-                        value: k,
-                        child: Text(k, style: const TextStyle(fontSize: 14)),
-                      )).toList(),
-                      onChanged: (val) {
-                        if (val != null) setState(() => _selectedKelas = val);
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
 
           Text(
-            '${filtered.length} interupsi tercatat',
+            '${_data.length} interupsi tercatat',
             style: const TextStyle(
               fontWeight: FontWeight.bold,
               color: darkGreen,
@@ -2859,7 +2841,7 @@ class _AdminInterruptionsPageState
 
           const SizedBox(height: 12),
 
-          if (filtered.isEmpty)
+          if (_data.isEmpty)
             const EmptyCard(
               icon:
                   Icons.check_circle_outline,
@@ -2867,7 +2849,7 @@ class _AdminInterruptionsPageState
                   'Belum ada interupsi.',
             )
           else
-            ...filtered.map(
+            ..._data.map(
               (item) =>
                   InterruptionCard(
                 data: item,
@@ -3126,18 +3108,12 @@ class _StudentDashboardState
     final pages = [
       StudentHomePage(
         student: _student!,
-        onOpenReading: () => setState(() {
-          _index = 1;
-        }),
+        onOpenReading: () => setState(() => _index = 1),
         onOpenProgress: () => setState(() => _index = 2),
       ),
-      QuranReaderPage(
+      ReadingPage(
         student: _student!,
-        onFinished: () {
-          if (mounted) {
-            setState(() => _index = 0);
-          }
-        },
+        onFinished: () => setState(() => _index = 0),
       ),
       StudentProgressPage(
         student: _student!,
@@ -3171,15 +3147,6 @@ class _StudentDashboardState
       body: pages[_index],
       bottomNavigationBar:
           NavigationBar(
-        backgroundColor: const Color(0xFFEAF2EF),
-        indicatorColor: const Color(0xFFCBEDE5),
-        labelTextStyle: WidgetStateProperty.resolveWith((states) {
-          final selected = states.contains(WidgetState.selected);
-          return TextStyle(
-            color: selected ? primaryColor : const Color(0xFF46524F),
-            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-          );
-        }),
         selectedIndex: _index,
         onDestinationSelected:
             (index) {
@@ -3431,54 +3398,150 @@ class ReadingPage
   });
 
   @override
-  State<ReadingPage> createState() =>
-      _ReadingPageState();
+  State<ReadingPage> createState() => _ReadingPageState();
 }
 
-class _ReadingPageState
-    extends State<ReadingPage>
+class _ReadingPageState extends State<ReadingPage>
     with WidgetsBindingObserver {
   Timer? _timer;
 
   int _seconds = 0;
   int _lastAyat = 1;
+  String _selectedSurah = quranSurahs.first;
 
   bool _started = false;
   bool _saving = false;
+  bool _liveUpdating = false;
+
+  String get _nis => widget.student['nis']?.toString() ?? '';
+  String get _nama => widget.student['nama']?.toString() ?? '';
+  String get _kelas => widget.student['kelas']?.toString() ?? '';
 
   @override
   void initState() {
     super.initState();
-
-    WidgetsBinding.instance
-        .addObserver(this);
-
+    WidgetsBinding.instance.addObserver(this);
     _startReading();
   }
 
   @override
   void dispose() {
     _timer?.cancel();
-
-    WidgetsBinding.instance
-        .removeObserver(this);
-
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
-  void _startReading() {
+@override
+void didChangeAppLifecycleState(AppLifecycleState state) {
+  super.didChangeAppLifecycleState(state);
+
+  if (!_started || _saving) return;
+
+  if (state == AppLifecycleState.paused) {
+    _setLiveActive(false);
+    _handleInterruption();
+  } else if (state == AppLifecycleState.resumed) {
+    _setLiveActive(true);
+    _handleResume();
+  }
+}
+
+Future<void> _handleInterruption() async {
+  if (!_started || _saving || _nis.isEmpty) return;
+
+  debugPrint('⚠️ INTERUPSI TERDETEKSI: $_nis');
+
+  try {
+    await LenteraDatabase.recordInterruption(
+      nis: _nis,
+      nama: _nama,
+      kelas: _kelas,
+      surat: _selectedSurah,
+      ayat: _lastAyat,
+      durationSeconds: _seconds,
+    );
+  } catch (e) {
+    debugPrint('Gagal mencatat interupsi: $e');
+  }
+}
+
+Future<void> _handleResume() async {
+  if (!_started || _saving || _nis.isEmpty) return;
+
+  debugPrint('✅ SISWA KEMBALI KE APLIKASI: $_nis');
+
+  await _pushLiveSession();
+}
+  Future<void> _startReading() async {
     _started = true;
+
+    try {
+      await LenteraDatabase.startLiveSession(
+        nis: _nis,
+        nama: _nama,
+        kelas: _kelas,
+        surat: _selectedSurah,
+        ayat: _lastAyat,
+        durationSeconds: _seconds,
+      );
+    } catch (e) {
+      debugPrint('Gagal memulai live tracking: $e');
+    }
 
     _timer = Timer.periodic(
       const Duration(seconds: 1),
       (_) {
-        if (mounted && _started) {
-          setState(() {
-            _seconds++;
-          });
+        if (!mounted || !_started) return;
+
+        setState(() {
+          _seconds++;
+        });
+
+        // Kirim pembaruan setiap 5 detik agar Firebase tetap ringan.
+        if (_seconds % 5 == 0) {
+          _pushLiveSession();
         }
       },
     );
+  }
+
+  Future<void> _pushLiveSession() async {
+    if (_liveUpdating || _saving || !_started || _nis.isEmpty) return;
+    _liveUpdating = true;
+    try {
+      await LenteraDatabase.updateLiveSession(
+        nis: _nis,
+        nama: _nama,
+        kelas: _kelas,
+        surat: _selectedSurah,
+        ayat: _lastAyat,
+        durationSeconds: _seconds,
+      );
+    } catch (e) {
+      debugPrint('Gagal memperbarui live tracking: $e');
+    } finally {
+      _liveUpdating = false;
+    }
+  }
+
+  Future<void> _changeAyat(int value) async {
+    final next = _lastAyat + value;
+    if (next < 1) return;
+
+    setState(() {
+      _lastAyat = next;
+    });
+    await _pushLiveSession();
+  }
+
+  Future<void> _changeSurah(String? value) async {
+    if (value == null || value == _selectedSurah) return;
+
+    setState(() {
+      _selectedSurah = value;
+      _lastAyat = 1;
+    });
+    await _pushLiveSession();
   }
 
   Future<void> _saveAndExit() async {
@@ -3486,26 +3549,28 @@ class _ReadingPageState
 
     setState(() {
       _saving = true;
+      _started = false;
     });
 
-    final nis = widget.student['nis']?.toString() ?? '';
-    final nama = widget.student['nama']?.toString() ?? '';
-    final kelas = widget.student['kelas']?.toString() ?? '';
+    _timer?.cancel();
 
     try {
       await LenteraDatabase.saveProgress(
-        nis: nis,
-        nama: nama,
-        kelas: kelas,
+        nis: _nis,
+        nama: _nama,
+        kelas: _kelas,
         durationSeconds: _seconds,
+        surat: _selectedSurah,
         lastAyat: _lastAyat,
-        surah: 'Belum memilih surah',
       );
+
+      await LenteraDatabase.endLiveSession(_nis);
     } catch (e) {
       debugPrint('Gagal menyimpan progres: $e');
+      try {
+        await LenteraDatabase.endLiveSession(_nis);
+      } catch (_) {}
     }
-
-    _timer?.cancel();
 
     if (!mounted) return;
 
@@ -3516,57 +3581,26 @@ class _ReadingPageState
     }
   }
 
-  @override
-  void didChangeAppLifecycleState(
-    AppLifecycleState state,
-  ) {
-    if (state ==
-        AppLifecycleState.paused) {
-      // Dicatat sebagai interupsi ketika
-      // siswa meninggalkan aplikasi.
-      _logBackgroundInterruption();
-    }
-  }
-
-  Future<void>
-      _logBackgroundInterruption() async {
-    final nis =
-        widget.student['nis']
-            ?.toString() ??
-        '';
-
-    final nama =
-        widget.student['nama']
-            ?.toString() ??
-        '';
-
-    final kelas =
-        widget.student['kelas']
-            ?.toString() ??
-        '';
-
+  Future<void> _setLiveActive(bool active) async {
+    if (_nis.isEmpty || _saving) return;
     try {
-      await LenteraDatabase.logInterruption(
-        nis: nis,
-        nama: nama,
-        kelas: kelas,
-        message:
-            'Siswa meninggalkan halaman membaca',
+      await LenteraDatabase.updateLiveSession(
+        nis: _nis,
+        nama: _nama,
+        kelas: _kelas,
+        surat: _selectedSurah,
+        ayat: _lastAyat,
+        durationSeconds: _seconds,
+        active: active,
+        status: active ? 'Sedang membaca' : 'Sementara berhenti',
       );
     } catch (_) {}
   }
 
-  String _formatTime(
-    int seconds,
-  ) {
-    final minutes =
-        seconds ~/ 60;
-
-    final secs =
-        seconds % 60;
-
-    return '${minutes.toString().padLeft(2, '0')}:'
-        '${secs.toString().padLeft(2, '0')}';
+  String _formatTime(int seconds) {
+    final minutes = seconds ~/ 60;
+    final secs = seconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -3578,20 +3612,16 @@ class _ReadingPageState
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text(
-            'Membaca Al-Qur\'an',
-          ),
+          title: const Text("Membaca Al-Qur'an"),
         ),
         body: ListView(
           padding: const EdgeInsets.all(20),
           children: [
             Container(
-              padding:
-                  const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: darkGreen,
-                borderRadius:
-                    BorderRadius.circular(22),
+                borderRadius: BorderRadius.circular(22),
               ),
               child: Column(
                 children: [
@@ -3600,25 +3630,26 @@ class _ReadingPageState
                     color: Colors.white,
                     size: 52,
                   ),
-
                   const SizedBox(height: 15),
-
                   const Text(
                     'Sesi Membaca',
-                    style: TextStyle(
-                      color: Colors.white70,
-                    ),
+                    style: TextStyle(color: Colors.white70),
                   ),
-
                   const SizedBox(height: 5),
-
                   Text(
                     _formatTime(_seconds),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 42,
-                      fontWeight:
-                          FontWeight.bold,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '$_selectedSurah • Ayat $_lastAyat',
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
                     ),
                   ),
                 ],
@@ -3628,90 +3659,108 @@ class _ReadingPageState
             const SizedBox(height: 20),
 
             Container(
-              padding:
-                  const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius:
-                    BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(18),
               ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Simulasi Halaman Al-Qur\'an',
+                    'Lokasi Bacaan',
                     style: TextStyle(
                       fontSize: 18,
-                      fontWeight:
-                          FontWeight.bold,
+                      fontWeight: FontWeight.bold,
                       color: darkGreen,
                     ),
                   ),
-
-                  const SizedBox(height: 18),
-
-                  const Text(
-                    'بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ',
-                    textAlign: TextAlign.center,
-                    textDirection:
-                        TextDirection.rtl,
-                    style: TextStyle(
-                      fontSize: 28,
-                      height: 1.8,
+                  const SizedBox(height: 14),
+                  DropdownButtonFormField<String>(
+                    value: _selectedSurah,
+                    decoration: const InputDecoration(
+                      labelText: 'Surat',
+                      prefixIcon: Icon(Icons.menu_book_outlined),
                     ),
+                    items: quranSurahs
+                        .map(
+                          (surah) => DropdownMenuItem<String>(
+                            value: surah,
+                            child: Text(surah),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: _saving ? null : _changeSurah,
                   ),
-
-                  const SizedBox(height: 20),
-
-                  const Text(
-                    'Dengan nama Allah Yang Maha Pengasih, '
-                    'Maha Penyayang.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 17,
-                      height: 1.7,
-                    ),
-                  ),
-
-                  const SizedBox(height: 25),
-
+                  const SizedBox(height: 16),
                   Row(
-                    mainAxisAlignment:
-                        MainAxisAlignment.center,
                     children: [
-                      IconButton(
-                        onPressed: _lastAyat > 1
-                            ? () {
-                                setState(() {
-                                  _lastAyat--;
-                                });
-                              }
-                            : null,
-                        icon: const Icon(
-                          Icons.remove_circle_outline,
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _saving || _lastAyat <= 1
+                              ? null
+                              : () => _changeAyat(-1),
+                          icon: const Icon(Icons.remove),
+                          label: const Text('Ayat sebelumnya'),
                         ),
                       ),
-
-                      Text(
-                        'Ayat $_lastAyat',
-                        style:
-                            const TextStyle(
-                          fontWeight:
-                              FontWeight.bold,
-                          fontSize: 18,
-                        ),
-                      ),
-
-                      IconButton(
-                        onPressed: () {
-                          setState(() {
-                            _lastAyat++;
-                          });
-                        },
-                        icon: const Icon(
-                          Icons.add_circle_outline,
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _saving
+                              ? null
+                              : () => _changeAyat(1),
+                          icon: const Icon(Icons.add),
+                          label: const Text('Ayat berikutnya'),
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 12),
+                  Center(
+                    child: Text(
+                      'Ayat $_lastAyat',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                        color: darkGreen,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: const Column(
+                children: [
+                  Text(
+                    "Simulasi Halaman Al-Qur'an",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: darkGreen,
+                    ),
+                  ),
+                  SizedBox(height: 18),
+                  Text(
+                    'بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ',
+                    textAlign: TextAlign.center,
+                    textDirection: TextDirection.rtl,
+                    style: TextStyle(fontSize: 28, height: 1.8),
+                  ),
+                  SizedBox(height: 20),
+                  Text(
+                    'Dengan nama Allah Yang Maha Pengasih, Maha Penyayang.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 17, height: 1.7),
                   ),
                 ],
               ),
@@ -3722,33 +3771,21 @@ class _ReadingPageState
             SizedBox(
               height: 52,
               child: ElevatedButton.icon(
-                onPressed: _saving
-                    ? null
-                    : _saveAndExit,
+                onPressed: _saving ? null : _saveAndExit,
                 icon: _saving
                     ? const SizedBox(
                         width: 20,
                         height: 20,
-                        child:
-                            CircularProgressIndicator(
+                        child: CircularProgressIndicator(
                           strokeWidth: 2,
                           color: Colors.white,
                         ),
                       )
-                    : const Icon(
-                        Icons.check,
-                      ),
-                label: Text(
-                  _saving
-                      ? 'Menyimpan...'
-                      : 'Selesai Membaca',
-                ),
-                style:
-                    ElevatedButton.styleFrom(
-                  backgroundColor:
-                      primaryColor,
-                  foregroundColor:
-                      Colors.white,
+                    : const Icon(Icons.check),
+                label: Text(_saving ? 'Menyimpan...' : 'Selesai Membaca'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryColor,
+                  foregroundColor: Colors.white,
                 ),
               ),
             ),
@@ -4185,1203 +4222,5 @@ class EmptyCard extends StatelessWidget {
         ],
       ),
     );
-  }
-}
-
-// ============================================================
-// QURAN READER - FULL SURAH + INDONESIAN TRANSLATION + TAJWEED
-// ============================================================
-
-class QuranSurahInfo {
-  final int number;
-  final String name;
-  final String englishName;
-  final String englishTranslation;
-  final int numberOfAyahs;
-
-  const QuranSurahInfo({
-    required this.number,
-    required this.name,
-    required this.englishName,
-    required this.englishTranslation,
-    required this.numberOfAyahs,
-  });
-
-  factory QuranSurahInfo.fromJson(Map<String, dynamic> json) {
-    return QuranSurahInfo(
-      number: (json['number'] as num?)?.toInt() ?? 1,
-      name: json['name']?.toString() ?? '',
-      englishName: json['englishName']?.toString() ?? '',
-      englishTranslation:
-          json['englishNameTranslation']?.toString() ?? '',
-      numberOfAyahs: (json['numberOfAyahs'] as num?)?.toInt() ?? 0,
-    );
-  }
-}
-
-class QuranAyahData {
-  final int numberInSurah;
-  final String tajweedText;
-  final String latinText;
-  final String translation;
-
-  const QuranAyahData({
-    required this.numberInSurah,
-    required this.tajweedText,
-    required this.latinText,
-    required this.translation,
-  });
-}
-
-class QuranReaderPage extends StatefulWidget {
-  final Map<String, dynamic>? student;
-  final VoidCallback? onFinished;
-  final int? initialSurahNumber;
-  final int? initialAyah;
-
-  const QuranReaderPage({
-    super.key,
-    this.student,
-    this.onFinished,
-    this.initialSurahNumber,
-    this.initialAyah,
-  });
-
-  @override
-  State<QuranReaderPage> createState() => _QuranReaderPageState();
-}
-
-class _QuranReaderPageState extends State<QuranReaderPage>
-    with WidgetsBindingObserver {
-  static List<QuranSurahInfo>? _surahCache;
-
-  List<QuranSurahInfo> _surahs = [];
-  List<QuranAyahData> _ayahs = [];
-
-  QuranSurahInfo? _selectedSurah;
-
-  bool _loadingSurahs = true;
-  bool _loadingAyahs = false;
-  String? _error;
-
-  int _lastAyah = 1;
-  int _seconds = 0;
-  Timer? _timer;
-  Timer? _liveUpdateTimer;
-  DateTime? _startedAt;
-  bool _saving = false;
-  bool _liveStarted = false;
-  final Set<String> _bookmarkedKeys = <String>{};
-  bool _loadingBookmarks = false;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _startedAt = DateTime.now();
-    _startTimer();
-    _loadSurahs();
-    _loadBookmarks();
-    // Langsung mulai Live Tracking saat masuk halaman Mengaji,
-    // tanpa menunggu surah dimuat atau siswa menyentuh ayat.
-    _startLiveTrackingImmediate();
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    _liveUpdateTimer?.cancel();
-    if (widget.student != null && _liveStarted && _selectedSurah != null) {
-      final student = widget.student!;
-      LenteraDatabase.endLiveSession(
-        nis: student['nis']?.toString() ?? '',
-        nama: student['nama']?.toString() ?? '',
-        kelas: student['kelas']?.toString() ?? '',
-        surah: _selectedSurah!.name,
-        ayat: _lastAyah,
-        durationSeconds: _seconds,
-      ).catchError((_) {});
-    }
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  void _startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) {
-        setState(() => _seconds++);
-      }
-    });
-  }
-
-  /// Langsung aktif saat siswa masuk halaman Mengaji, sebelum surah dimuat.
-  Future<void> _startLiveTrackingImmediate() async {
-    final student = widget.student;
-    if (student == null || _liveStarted) return;
-    try {
-      await LenteraDatabase.startLiveSession(
-        nis: student['nis']?.toString() ?? '',
-        nama: student['nama']?.toString() ?? '',
-        kelas: student['kelas']?.toString() ?? '',
-        surah: 'Memuat...', // akan diperbarui setelah surah terpilih
-        ayat: 1,
-        durationSeconds: 0,
-      );
-      _liveStarted = true;
-      _liveUpdateTimer?.cancel();
-      _liveUpdateTimer = Timer.periodic(
-        const Duration(seconds: 5),
-        (_) => _updateLiveTracking(),
-      );
-    } catch (e) {
-      debugPrint('Gagal memulai live tracking awal: $e');
-    }
-  }
-
-  /// Dipakai saat surah sudah tersedia (update nama surah ke Firebase).
-  Future<void> _startLiveTracking() async {
-    final student = widget.student;
-    final surah = _selectedSurah;
-    if (student == null || surah == null) return;
-
-    // Jika sesi sudah berjalan, cukup update nama surahnya.
-    if (_liveStarted) {
-      await _updateLiveTracking();
-      return;
-    }
-
-    try {
-      await LenteraDatabase.startLiveSession(
-        nis: student['nis']?.toString() ?? '',
-        nama: student['nama']?.toString() ?? '',
-        kelas: student['kelas']?.toString() ?? '',
-        surah: surah.name,
-        ayat: _lastAyah,
-        durationSeconds: _seconds,
-      );
-      _liveStarted = true;
-      _liveUpdateTimer?.cancel();
-      _liveUpdateTimer = Timer.periodic(
-        const Duration(seconds: 5),
-        (_) => _updateLiveTracking(),
-      );
-    } catch (e) {
-      debugPrint('Gagal memulai live tracking: $e');
-    }
-  }
-
-  Future<void> _updateLiveTracking({String status = 'active'}) async {
-    final student = widget.student;
-    final surah = _selectedSurah;
-    if (student == null || surah == null || !_liveStarted) return;
-
-    try {
-      await LenteraDatabase.updateLiveSession(
-        nis: student['nis']?.toString() ?? '',
-        nama: student['nama']?.toString() ?? '',
-        kelas: student['kelas']?.toString() ?? '',
-        surah: surah.name,
-        ayat: _lastAyah,
-        durationSeconds: _seconds,
-        status: status,
-      );
-    } catch (e) {
-      debugPrint('Gagal memperbarui live tracking: $e');
-    }
-  }
-
-  Future<void> _endLiveTracking() async {
-    final student = widget.student;
-    final surah = _selectedSurah;
-    if (student == null || surah == null || !_liveStarted) return;
-
-    _liveUpdateTimer?.cancel();
-    try {
-      await LenteraDatabase.endLiveSession(
-        nis: student['nis']?.toString() ?? '',
-        nama: student['nama']?.toString() ?? '',
-        kelas: student['kelas']?.toString() ?? '',
-        surah: surah.name,
-        ayat: _lastAyah,
-        durationSeconds: _seconds,
-      );
-    } catch (e) {
-      debugPrint('Gagal mengakhiri live tracking: $e');
-    } finally {
-      _liveStarted = false;
-    }
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (widget.student == null) return;
-
-    if (state == AppLifecycleState.paused) {
-      _recordInterruption();
-      _updateLiveTracking(status: 'paused');
-    } else if (state == AppLifecycleState.resumed) {
-      _updateLiveTracking(status: 'active');
-    }
-  }
-
-  Future<void> _recordInterruption() async {
-    final student = widget.student!;
-    try {
-      await LenteraDatabase.recordInterruption(
-        nis: student['nis']?.toString() ?? '',
-        nama: student['nama']?.toString() ?? '',
-        kelas: student['kelas']?.toString() ?? '',
-        message: 'Siswa meninggalkan halaman baca Al-Qur\'an lengkap',
-      );
-    } catch (_) {}
-  }
-
-  String _bookmarkKey(int surahNumber, int ayah) => '${surahNumber}_$ayah';
-
-  bool _isBookmarked(int ayah) {
-    final surah = _selectedSurah;
-    if (surah == null) return false;
-    return _bookmarkedKeys.contains(_bookmarkKey(surah.number, ayah));
-  }
-
-  Future<void> _loadBookmarks() async {
-    final student = widget.student;
-    final nis = student?['nis']?.toString() ?? '';
-    if (nis.isEmpty) return;
-    setState(() => _loadingBookmarks = true);
-    try {
-      final items = await LenteraDatabase.getBookmarks(nis: nis);
-      if (!mounted) return;
-      setState(() {
-        _bookmarkedKeys
-          ..clear()
-          ..addAll(items.map((item) =>
-              _bookmarkKey(
-                (item['surahNumber'] as num?)?.toInt() ?? 0,
-                (item['ayat'] as num?)?.toInt() ?? 0,
-              )));
-        _loadingBookmarks = false;
-      });
-    } catch (e) {
-      debugPrint('Gagal memuat bookmark: $e');
-      if (mounted) setState(() => _loadingBookmarks = false);
-    }
-  }
-
-  Future<void> _toggleBookmark(QuranAyahData ayah) async {
-    final student = widget.student;
-    final surah = _selectedSurah;
-    final nis = student?['nis']?.toString() ?? '';
-    if (student == null || surah == null || nis.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bookmark hanya tersedia setelah login.')),
-      );
-      return;
-    }
-
-    final key = _bookmarkKey(surah.number, ayah.numberInSurah);
-    final wasBookmarked = _bookmarkedKeys.contains(key);
-    setState(() {
-      if (wasBookmarked) {
-        _bookmarkedKeys.remove(key);
-      } else {
-        _bookmarkedKeys.add(key);
-      }
-    });
-
-    try {
-      if (wasBookmarked) {
-        await LenteraDatabase.deleteBookmark(
-          nis: nis,
-          surahNumber: surah.number,
-          ayat: ayah.numberInSurah,
-        );
-      } else {
-        await LenteraDatabase.saveBookmark(
-          nis: nis,
-          nama: student['nama']?.toString() ?? '',
-          surahNumber: surah.number,
-          surahName: surah.name,
-          ayat: ayah.numberInSurah,
-          latin: ayah.latinText,
-          translation: ayah.translation,
-        );
-      }
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(wasBookmarked ? 'Bookmark dihapus.' : 'Ayat ditambahkan ke bookmark.'),
-          duration: const Duration(milliseconds: 900),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        if (wasBookmarked) {
-          _bookmarkedKeys.add(key);
-        } else {
-          _bookmarkedKeys.remove(key);
-        }
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Bookmark gagal disimpan: $e')),
-      );
-    }
-  }
-
-  QuranSurahInfo? _surahByNumber(int? number) {
-    if (number == null) return null;
-    for (final surah in _surahs) {
-      if (surah.number == number) return surah;
-    }
-    return null;
-  }
-
-  Future<void> _loadSurahs() async {
-    setState(() {
-      _loadingSurahs = true;
-      _error = null;
-    });
-
-    try {
-      if (_surahCache == null) {
-        final response = await http.get(
-          Uri.parse('https://api.alquran.cloud/v1/surah'),
-        );
-
-        if (response.statusCode != 200) {
-          throw Exception('Gagal mengambil daftar surah.');
-        }
-
-        final body = jsonDecode(response.body) as Map<String, dynamic>;
-        final data = body['data'] as List<dynamic>;
-
-        _surahCache = data
-            .map((item) => QuranSurahInfo.fromJson(
-                  Map<String, dynamic>.from(item as Map),
-                ))
-            .toList();
-      }
-
-      if (!mounted) return;
-
-      setState(() {
-        _surahs = List<QuranSurahInfo>.from(_surahCache!);
-        _selectedSurah = _selectedSurah ??
-            (_surahByNumber(widget.initialSurahNumber) ?? _surahs.first);
-        _loadingSurahs = false;
-      });
-
-      await _loadAyahs(_selectedSurah!);
-      if (widget.initialAyah != null && widget.initialSurahNumber == _selectedSurah!.number) {
-        final target = widget.initialAyah!;
-        if (_ayahs.any((ayah) => ayah.numberInSurah == target) && mounted) {
-          setState(() => _lastAyah = target);
-        }
-      }
-      await _startLiveTracking();
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _loadingSurahs = false;
-        _error = 'Tidak dapat memuat Al-Qur\'an. Periksa koneksi internet.';
-      });
-    }
-  }
-
-  Future<void> _loadAyahs(QuranSurahInfo surah) async {
-    setState(() {
-      _loadingAyahs = true;
-      _error = null;
-    });
-
-    try {
-      final responses = await Future.wait([
-        // Arabic + warna tajwid
-        http.get(
-          Uri.parse(
-            'https://api.alquran.cloud/v1/surah/${surah.number}/quran-tajweed',
-          ),
-        ),
-        // Terjemahan Indonesia
-        http.get(
-          Uri.parse(
-            'https://api.alquran.cloud/v1/surah/${surah.number}/id.indonesian',
-          ),
-        ),
-        // Latin/transliterasi dari EQuran.id API v2
-        http.get(
-          Uri.parse(
-            'https://equran.id/api/v2/surat/${surah.number}',
-          ),
-        ),
-      ]);
-
-      if (responses[0].statusCode != 200 ||
-          responses[1].statusCode != 200 ||
-          responses[2].statusCode != 200) {
-        throw Exception('Gagal mengambil ayat.');
-      }
-
-      final tajweedBody =
-          jsonDecode(responses[0].body) as Map<String, dynamic>;
-      final translationBody =
-          jsonDecode(responses[1].body) as Map<String, dynamic>;
-      final equranBody =
-          jsonDecode(responses[2].body) as Map<String, dynamic>;
-
-      final tajweedData =
-          Map<String, dynamic>.from(tajweedBody['data'] as Map);
-      final translationData =
-          Map<String, dynamic>.from(translationBody['data'] as Map);
-      final equranData =
-          Map<String, dynamic>.from(equranBody['data'] as Map);
-
-      final tajweedAyahs = tajweedData['ayahs'] as List<dynamic>;
-      final translationAyahs = translationData['ayahs'] as List<dynamic>;
-      final equranAyahs = equranData['ayat'] as List<dynamic>;
-
-      final translations = <int, String>{};
-      for (final item in translationAyahs) {
-        final map = Map<String, dynamic>.from(item as Map);
-        final number = (map['numberInSurah'] as num?)?.toInt() ?? 0;
-        translations[number] = map['text']?.toString() ?? '';
-      }
-
-      final latinTexts = <int, String>{};
-      for (final item in equranAyahs) {
-        final map = Map<String, dynamic>.from(item as Map);
-        final number = (map['nomorAyat'] as num?)?.toInt() ?? 0;
-        latinTexts[number] = map['teksLatin']?.toString() ?? '';
-      }
-
-      final result = <QuranAyahData>[];
-      for (final item in tajweedAyahs) {
-        final map = Map<String, dynamic>.from(item as Map);
-        final number = (map['numberInSurah'] as num?)?.toInt() ?? 0;
-        result.add(
-          QuranAyahData(
-            numberInSurah: number,
-            tajweedText: map['text']?.toString() ?? '',
-            latinText: latinTexts[number] ?? '',
-            translation: translations[number] ?? '',
-          ),
-        );
-      }
-
-      if (!mounted) return;
-      setState(() {
-        _ayahs = result;
-        _lastAyah = 1;
-        _loadingAyahs = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _loadingAyahs = false;
-        _ayahs = [];
-        _error = 'Ayat tidak dapat dimuat. Coba pilih surah lagi.';
-      });
-    }
-  }
-
-  Future<void> _selectSurah(QuranSurahInfo? surah) async {
-    if (surah == null) return;
-    setState(() {
-      _selectedSurah = surah;
-      _lastAyah = 1;
-    });
-    await _loadAyahs(surah);
-    if (_liveStarted) {
-      await _updateLiveTracking();
-    }
-  }
-
-  Future<void> _saveProgressAndExit() async {
-    if (_saving) return;
-    setState(() => _saving = true);
-
-    _timer?.cancel();
-
-    try {
-      if (widget.student != null) {
-        final student = widget.student!;
-        await LenteraDatabase.saveProgress(
-          nis: student['nis']?.toString() ?? '',
-          nama: student['nama']?.toString() ?? '',
-          kelas: student['kelas']?.toString() ?? '',
-          durationSeconds: _seconds,
-          lastAyat: _lastAyah,
-          surah: _selectedSurah?.name ?? 'Belum memilih surah',
-        );
-      }
-
-      await _endLiveTracking();
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Progres membaca berhasil disimpan.'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-
-      if (widget.onFinished != null) {
-        widget.onFinished!();
-      } else {
-        Navigator.of(context).pop();
-      }
-    } catch (e) {
-      if (!mounted) return;
-      debugPrint('Gagal menyimpan progres Quran: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Progres gagal disimpan: $e'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      setState(() => _saving = false);
-    }
-  }
-
-  String _formatTime(int seconds) {
-    final minutes = seconds ~/ 60;
-    final secs = seconds % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        await _saveProgressAndExit();
-        return false;
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            'Baca Al-Qur\'an',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          actions: [
-            IconButton(
-              tooltip: 'Bookmark saya',
-              onPressed: widget.student == null
-                  ? null
-                  : () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => BookmarkPage(student: widget.student!),
-                        ),
-                      );
-                    },
-              icon: const Icon(Icons.bookmarks_outlined),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(right: 12),
-              child: Center(
-                child: Text(
-                  _formatTime(_seconds),
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-          ],
-        ),
-        body: _loadingSurahs
-            ? const Center(
-                child: CircularProgressIndicator(color: primaryColor),
-              )
-            : _error != null && _surahs.isEmpty
-                ? _buildErrorState()
-                : Column(
-                    children: [
-                      _buildSurahSelector(),
-                      _buildTajweedLegend(),
-                      Expanded(child: _buildAyahList()),
-                    ],
-                  ),
-        bottomNavigationBar: widget.student == null
-            ? null
-            : SafeArea(
-                minimum: const EdgeInsets.all(12),
-                child: SizedBox(
-                  height: 52,
-                  child: ElevatedButton.icon(
-                    onPressed: _saving ? null : _saveProgressAndExit,
-                    icon: _saving
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Icon(Icons.check_rounded),
-                    label: Text(
-                      _saving ? 'Menyimpan...' : 'Selesai Membaca',
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor,
-                      foregroundColor: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-      ),
-    );
-  }
-
-  Widget _buildErrorState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.wifi_off_rounded,
-              size: 56,
-              color: Colors.grey,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _error ?? 'Terjadi kesalahan.',
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 18),
-            ElevatedButton.icon(
-              onPressed: _loadSurahs,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Coba Lagi'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSurahSelector() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      color: Colors.white,
-      child: DropdownButtonFormField<QuranSurahInfo>(
-        value: _selectedSurah,
-        isExpanded: true,
-        decoration: InputDecoration(
-          labelText: 'Pilih Surah',
-          prefixIcon: const Icon(Icons.menu_book_rounded),
-          filled: true,
-          fillColor: backgroundColor,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide.none,
-          ),
-        ),
-        items: _surahs.map((surah) {
-          return DropdownMenuItem<QuranSurahInfo>(
-            value: surah,
-            child: Text(
-              '${surah.number}. ${surah.englishName} — ${surah.name}',
-              overflow: TextOverflow.ellipsis,
-            ),
-          );
-        }).toList(),
-        onChanged: _selectSurah,
-      ),
-    );
-  }
-
-  Widget _buildTajweedLegend() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
-      color: Colors.white,
-      child: Wrap(
-        spacing: 10,
-        runSpacing: 6,
-        children: const [
-          _TajweedLegendItem('Mad', Color(0xFF4050FF)),
-          _TajweedLegendItem('Qalqalah', Color(0xFFDD0008)),
-          _TajweedLegendItem('Ikhfa', Color(0xFF9400A8)),
-          _TajweedLegendItem('Idgham', Color(0xFF169200)),
-          _TajweedLegendItem('Iqlab', Color(0xFF26BFFD)),
-          _TajweedLegendItem('Ghunnah', Color(0xFFFF7E1E)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAyahList() {
-    if (_loadingAyahs) {
-      return const Center(
-        child: CircularProgressIndicator(color: primaryColor),
-      );
-    }
-
-    if (_ayahs.isEmpty) {
-      return Center(
-        child: Text(_error ?? 'Belum ada ayat untuk ditampilkan.'),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
-      itemCount: _ayahs.length,
-      itemBuilder: (context, index) {
-        final ayah = _ayahs[index];
-        final selected = ayah.numberInSurah == _lastAyah;
-
-        return GestureDetector(
-          onTap: () {
-            setState(() => _lastAyah = ayah.numberInSurah);
-            _updateLiveTracking();
-          },
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 14),
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: selected ? const Color(0xFFF0F8F5) : Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: selected
-                    ? primaryColor.withOpacity(.35)
-                    : const Color(0xFFE1E9E6),
-                width: selected ? 1.5 : 1,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 34,
-                      height: 34,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: lightGreen,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Text(
-                        '${ayah.numberInSurah}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: primaryColor,
-                        ),
-                      ),
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      tooltip: _isBookmarked(ayah.numberInSurah)
-                          ? 'Hapus bookmark'
-                          : 'Simpan bookmark',
-                      onPressed: _loadingBookmarks
-                          ? null
-                          : () => _toggleBookmark(ayah),
-                      icon: Icon(
-                        _isBookmarked(ayah.numberInSurah)
-                            ? Icons.bookmark_rounded
-                            : Icons.bookmark_border_rounded,
-                        color: _isBookmarked(ayah.numberInSurah)
-                            ? primaryColor
-                            : Colors.grey.shade600,
-                        size: 23,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                Directionality(
-                  textDirection: TextDirection.rtl,
-                  child: RichText(
-                    textAlign: TextAlign.right,
-                    text: TextSpan(
-                      style: const TextStyle(
-                        fontSize: 29,
-                        height: 2.0,
-                        color: Color(0xFF1D2927),
-                      ),
-                      children: _TajweedParser.parse(
-                        ayah.tajweedText,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                if (ayah.latinText.isNotEmpty) ...[
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEEF7F4),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Latin',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: primaryColor,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          ayah.latinText,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            height: 1.65,
-                            color: Color(0xFF334A46),
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                ],
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF7F9F8),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Text(
-                    ayah.translation,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      height: 1.65,
-                      color: Color(0xFF4D5B58),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class BookmarkPage extends StatefulWidget {
-  final Map<String, dynamic> student;
-
-  const BookmarkPage({
-    super.key,
-    required this.student,
-  });
-
-  @override
-  State<BookmarkPage> createState() => _BookmarkPageState();
-}
-
-class _BookmarkPageState extends State<BookmarkPage> {
-  bool _loading = true;
-  List<Map<String, dynamic>> _bookmarks = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    try {
-      final items = await LenteraDatabase.getBookmarks(
-        nis: widget.student['nis']?.toString() ?? '',
-      );
-      if (!mounted) return;
-      setState(() {
-        _bookmarks = items;
-        _loading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Bookmark tidak dapat dimuat: $e')),
-      );
-    }
-  }
-
-  Future<void> _delete(Map<String, dynamic> item) async {
-    final nis = widget.student['nis']?.toString() ?? '';
-    final surahNumber = (item['surahNumber'] as num?)?.toInt() ?? 0;
-    final ayat = (item['ayat'] as num?)?.toInt() ?? 0;
-    try {
-      await LenteraDatabase.deleteBookmark(
-        nis: nis,
-        surahNumber: surahNumber,
-        ayat: ayat,
-      );
-      await _load();
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Bookmark gagal dihapus: $e')),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Bookmark Ayat',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-      ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator(color: primaryColor))
-          : _bookmarks.isEmpty
-              ? const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.bookmark_border_rounded, size: 58, color: Colors.grey),
-                        SizedBox(height: 12),
-                        Text(
-                          'Belum ada ayat yang disimpan.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.grey, fontSize: 16),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _load,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _bookmarks.length,
-                    itemBuilder: (context, index) {
-                      final item = _bookmarks[index];
-                      final surahNumber = (item['surahNumber'] as num?)?.toInt() ?? 0;
-                      final ayat = (item['ayat'] as num?)?.toInt() ?? 0;
-                      final surahName = item['surahName']?.toString() ?? '';
-                      final latin = item['latin']?.toString() ?? '';
-                      final translation = item['translation']?.toString() ?? '';
-
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        color: Colors.white,
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(16),
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => QuranReaderPage(
-                                  student: widget.student,
-                                  initialSurahNumber: surahNumber,
-                                  initialAyah: ayat,
-                                ),
-                              ),
-                            );
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    const Icon(Icons.bookmark_rounded, color: primaryColor),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        '$surahNumber. $surahName — Ayat $ayat',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: darkGreen,
-                                        ),
-                                      ),
-                                    ),
-                                    IconButton(
-                                      tooltip: 'Hapus',
-                                      onPressed: () => _delete(item),
-                                      icon: const Icon(Icons.delete_outline_rounded),
-                                    ),
-                                  ],
-                                ),
-                                if (latin.isNotEmpty) ...[
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    latin,
-                                    style: const TextStyle(
-                                      fontStyle: FontStyle.italic,
-                                      color: Color(0xFF334A46),
-                                      height: 1.5,
-                                    ),
-                                  ),
-                                ],
-                                if (translation.isNotEmpty) ...[
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    translation,
-                                    style: const TextStyle(
-                                      color: Color(0xFF5A6663),
-                                      height: 1.5,
-                                    ),
-                                  ),
-                                ],
-                                const SizedBox(height: 8),
-                                const Text(
-                                  'Ketuk untuk kembali membaca ayat ini.',
-                                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-    );
-  }
-}
-
-class _TajweedLegendItem extends StatelessWidget {
-  final String label;
-  final Color color;
-
-  const _TajweedLegendItem(this.label, this.color);
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
-        ),
-        const SizedBox(width: 5),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            color: color,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _TajweedParser {
-  static const Map<String, Color> _colors = {
-    'h': Color(0xFFAAAAAA), // Hamzatul Wasl
-    's': Color(0xFFAAAAAA), // Silent
-    'l': Color(0xFFAAAAAA), // Lam Shamsiyyah
-    'n': Color(0xFF537FFF), // Madd normal
-    'p': Color(0xFF4050FF), // Madd permissible
-    'm': Color(0xFF000EBC), // Madd necessary
-    'q': Color(0xFFDD0008), // Qalqalah
-    'o': Color(0xFF2144C1), // Madd obligatory
-    'c': Color(0xFFD500B7), // Ikhfa Shafawi
-    'f': Color(0xFF9400A8), // Ikhfa
-    'w': Color(0xFF58B800), // Idgham Shafawi
-    'i': Color(0xFF26BFFD), // Iqlab
-    'a': Color(0xFF169777), // Idgham with ghunnah
-    'u': Color(0xFF169200), // Idgham without ghunnah
-    'd': Color(0xFFA1A1A1), // Idgham mutajanisayn
-    'b': Color(0xFFA1A1A1), // Idgham mutaqaribayn
-    'g': Color(0xFFFF7E1E), // Ghunnah
-  };
-
-  static const Set<String> _markers = {
-    'h', 's', 'l', 'n', 'p', 'm', 'q', 'o',
-    'c', 'f', 'w', 'i', 'a', 'u', 'd', 'b', 'g',
-  };
-
-  static List<TextSpan> parse(String text) {
-    final parser = _Parser(text);
-    return parser.parseUntil(null);
-  }
-
-  static Color colorFor(String marker) {
-    return _colors[marker] ?? const Color(0xFF1D2927);
-  }
-}
-
-class _Parser {
-  final String text;
-  int index = 0;
-
-  _Parser(this.text);
-
-  List<TextSpan> parseUntil(String? closing) {
-    final spans = <TextSpan>[];
-    final buffer = StringBuffer();
-
-    void flush() {
-      if (buffer.isEmpty) return;
-      spans.add(TextSpan(text: buffer.toString()));
-      buffer.clear();
-    }
-
-    while (index < text.length) {
-      if (closing != null && text[index] == ']') {
-        flush();
-        index++;
-        break;
-      }
-
-      if (text[index] == '[' && index + 1 < text.length) {
-        final marker = text[index + 1];
-        if (_TajweedParser._markers.contains(marker)) {
-          flush();
-          index += 2;
-
-          if (index < text.length && text[index] == ':') {
-            index++;
-            while (index < text.length &&
-                RegExp(r'\d').hasMatch(text[index])) {
-              index++;
-            }
-          }
-
-          if (index < text.length && text[index] == '[') {
-            index++;
-            final children = parseUntil(']');
-            spans.add(
-              TextSpan(
-                style: TextStyle(
-                  color: _TajweedParser.colorFor(marker),
-                  fontWeight: FontWeight.w500,
-                ),
-                children: children,
-              ),
-            );
-            continue;
-          }
-
-          buffer.write('[');
-          buffer.write(marker);
-          continue;
-        }
-      }
-
-      buffer.write(text[index]);
-      index++;
-    }
-
-    flush();
-    return spans;
   }
 }
